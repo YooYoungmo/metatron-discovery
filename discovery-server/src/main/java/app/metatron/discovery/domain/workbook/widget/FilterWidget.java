@@ -14,6 +14,7 @@
 
 package app.metatron.discovery.domain.workbook.widget;
 
+import app.metatron.discovery.domain.datasource.DataSource;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.persistence.DiscriminatorValue;
@@ -24,6 +25,10 @@ import app.metatron.discovery.domain.workbook.DashBoard;
 import app.metatron.discovery.domain.workbook.configurations.WidgetConfiguration;
 import app.metatron.discovery.domain.workbook.configurations.widget.FilterWidgetConfiguration;
 import app.metatron.discovery.util.PolarisUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Map;
 
 /**
  * Created by kyungtaak on 2017. 7. 18..
@@ -59,5 +64,25 @@ public class FilterWidget extends Widget {
   @Override
   public WidgetConfiguration convertConfiguration() {
     return GlobalObjectMapper.readValue(this.configuration, FilterWidgetConfiguration.class);
+  }
+
+  @Override
+  public void changeDataSource(DataSource fromDataSource, DataSource toDataSource) {
+    Map<String, Object> widgetConfiguration = this.getConfigurationToMap();
+
+    if(MapUtils.isNotEmpty(widgetConfiguration)) {
+      Map<String, Object> filter = (Map<String, Object>)widgetConfiguration.get("filter");
+      if(MapUtils.isNotEmpty(filter)) {
+        if(StringUtils.equals((String)filter.get("dataSource"), fromDataSource.getEngineName())) {
+          filter.put("dataSource", toDataSource.getEngineName());
+        }
+
+        if(StringUtils.equals((String)filter.get("ref"), fromDataSource.getEngineName())) {
+          filter.put("ref", toDataSource.getEngineName());
+        }
+
+        this.setConfigurationFromMap(widgetConfiguration);
+      }
+    }
   }
 }

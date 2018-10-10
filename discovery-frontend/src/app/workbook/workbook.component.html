@@ -115,6 +115,9 @@
                     </a>
                   </li>
                 </ul>
+                <div class="ddp-ui-date">
+                  <a href="javascript:" (click)="openChangeDatasourceModel()">데이터 소스 변경</a>
+                </div>
               </div>
               <!-- //팝업 -->
             </div>
@@ -522,3 +525,5 @@
                       (close)="isShowDataIngestion = false" (done)="finishDataIngestion($event)">
 </app-essential-filter>
 <!-- // 추천 필터 설정 -->
+
+<app-change-datasource></app-change-datasource>

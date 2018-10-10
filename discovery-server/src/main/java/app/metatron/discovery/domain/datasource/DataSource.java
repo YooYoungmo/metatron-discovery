@@ -41,6 +41,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.GenericGenerator;
@@ -48,6 +49,8 @@ import org.hibernate.search.annotations.*;
 import org.hibernate.search.bridge.builtin.BooleanBridge;
 import org.hibernate.search.bridge.builtin.EnumBridge;
 import org.hibernate.validator.constraints.NotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.rest.core.annotation.RestResource;
 
 import javax.persistence.*;
@@ -73,6 +76,8 @@ import static org.hibernate.search.annotations.Index.NO;
     })
 @Indexed
 public class DataSource extends AbstractHistoryEntity implements MetatronDomain<String>, ContextEntity {
+
+  private static Logger LOGGER = LoggerFactory.getLogger(DataSource.class);
 
   /**
    * ID
@@ -739,8 +744,63 @@ public class DataSource extends AbstractHistoryEntity implements MetatronDomain<
     return contexts;
   }
 
+
   public void setContexts(String contexts) {
     this.contexts = contexts;
+  }
+
+  public void validateCompatibleDatasource(DataSource targetDataSource) {
+    if(this.getStatus() != Status.ENABLED || targetDataSource.getStatus() != Status.ENABLED) {
+      throw new DataSourceIncompatibleException(
+          DataSourceIncompatibleException.DataSourceIncompatibleErrorCodes.STATUS_ERROR_CODE,
+          String.format("[%s] datasource and [%s] datasource are incompatible. : Invalid Status",
+              this.getId(), targetDataSource.getId()));
+    }
+
+    if(this.getConnType() != ConnectionType.ENGINE || targetDataSource.getConnType() != ConnectionType.ENGINE) {
+      throw new DataSourceIncompatibleException(
+          DataSourceIncompatibleException.DataSourceIncompatibleErrorCodes.CONNECTION_TYPE_DIFFERENT_CODE,
+          String.format("[%s] datasource and [%s] datasource are incompatible. : DataSource connection type is different.",
+              this.getId(), targetDataSource.getId()));
+    }
+
+    if(this.getGranularity() != targetDataSource.getGranularity()) {
+      throw new DataSourceIncompatibleException(
+          DataSourceIncompatibleException.DataSourceIncompatibleErrorCodes.GRANULARITY_DIFFERENT_CODE,
+          String.format("[%s] datasource and [%s] datasource are incompatible. : DataSource granularity is different.",
+              this.getId(), targetDataSource.getId()));
+    }
+
+    if(this.isCompatibleFields(targetDataSource.getFields()) == false) {
+      throw new DataSourceIncompatibleException(
+          DataSourceIncompatibleException.DataSourceIncompatibleErrorCodes.FIELD_ERROR_CODE,
+          String.format("[%s] datasource and [%s] datasource are incompatible. : DataSource fields.",
+              this.getId(), targetDataSource.getId()));
+    }
+  }
+
+  private boolean isCompatibleFields(List<Field> targetFields) {
+    if(CollectionUtils.isEmpty(this.getFields())) {
+      return true;
+    } else {
+      for (Field field : this.getFields()) {
+        boolean matched = targetFields.stream().anyMatch(targetField -> {
+          if(field.getRole() == targetField.getRole()
+              && field.getName().equals(targetField.getName())
+              && field.getType() == targetField.getType()) {
+            return true;
+          } else {
+            return false;
+          }
+        });
+
+        if(matched == false) {
+          return false;
+        }
+      }
+
+      return true;
+    }
   }
 
   @Override
@@ -758,7 +818,6 @@ public class DataSource extends AbstractHistoryEntity implements MetatronDomain<
         ", status=" + status +
         "} ";
   }
-
   public enum DataSourceType {
     MASTER, JOIN, VOLATILITY
   }

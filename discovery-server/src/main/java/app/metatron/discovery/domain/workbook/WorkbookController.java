@@ -14,6 +14,8 @@
 
 package app.metatron.discovery.domain.workbook;
 
+import app.metatron.discovery.common.exception.MetatronException;
+import app.metatron.discovery.domain.workbook.dto.ChangingWorkbookDataSource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -26,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,6 +65,9 @@ public class WorkbookController {
 
   @Autowired
   PagedResourcesAssembler pagedResourcesAssembler;
+
+  @Autowired
+  WorkBookService workBookService;
 
   @RequestMapping(path = "/workbooks/{workbookId}/dashboards", method = RequestMethod.GET)
   public @ResponseBody
@@ -242,4 +248,10 @@ public class WorkbookController {
     return ResponseEntity.noContent().build();
   }
 
+  @RequestMapping(path = "/workbooks/{workbookId}/datasources", method = { RequestMethod.PUT, RequestMethod.PATCH })
+  public @ResponseBody ResponseEntity<?> changeDataSources(@PathVariable("workbookId") String workbookId,
+                                                           @RequestBody List<ChangingWorkbookDataSource> changingWorkbookDataSources) {
+    workBookService.changeDataSources(workbookId, changingWorkbookDataSources);
+    return ResponseEntity.noContent().build();
+  }
 }

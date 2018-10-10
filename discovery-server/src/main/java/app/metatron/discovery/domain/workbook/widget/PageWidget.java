@@ -14,17 +14,23 @@
 
 package app.metatron.discovery.domain.workbook.widget;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
-
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-
 import app.metatron.discovery.common.GlobalObjectMapper;
+import app.metatron.discovery.domain.datasource.DataSource;
 import app.metatron.discovery.domain.workbook.DashBoard;
 import app.metatron.discovery.domain.workbook.configurations.WidgetConfiguration;
 import app.metatron.discovery.domain.workbook.configurations.widget.PageWidgetConfiguration;
 import app.metatron.discovery.util.PolarisUtils;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by kyungtaak on 2017. 7. 18..
@@ -105,4 +111,85 @@ public class PageWidget extends Widget {
 //            .map((model) -> NotebookModelSummary.valueOf(model)).collect(Collectors.toList());
 //  }
 
+
+  @Override
+  public void changeDataSource(DataSource fromDataSource, DataSource toDataSource) {
+    Map<String, Object> widgetConfiguration = this.getConfigurationToMap();
+    if(MapUtils.isNotEmpty(widgetConfiguration)) {
+      Map<String, Object> dataSource = (Map<String, Object>)widgetConfiguration.get("dataSource");
+      if(MapUtils.isNotEmpty(dataSource) && StringUtils.equals((String)dataSource.get("id"), fromDataSource.getId())) {
+        dataSource.put("id", toDataSource.getId());
+        dataSource.put("engineName", toDataSource.getEngineName());
+        dataSource.put("name", toDataSource.getEngineName());
+      }
+
+      List<Map<String, Object>> joins = (List<Map<String, Object>>)dataSource.get("joins");
+      Optional.ofNullable(joins).orElse(Collections.emptyList()).forEach(join -> {
+        if(StringUtils.equals((String)join.get("id"), fromDataSource.getId())) {
+          join.put("id", toDataSource.getId());
+          join.put("engineName", toDataSource.getEngineName());
+          join.put("name", toDataSource.getEngineName());
+        }
+
+        Map<String, Object> joinOfJoin = (Map<String, Object>)join.get("join");
+        if(MapUtils.isNotEmpty(joinOfJoin)) {
+          if(StringUtils.equals((String)joinOfJoin.get("id"), fromDataSource.getId())) {
+            joinOfJoin.put("id", toDataSource.getId());
+            joinOfJoin.put("engineName", toDataSource.getEngineName());
+            joinOfJoin.put("name", toDataSource.getEngineName());
+          }
+        }
+      });
+
+      List<Map<String, Object>> fields = (List<Map<String, Object>>)widgetConfiguration.get("fields");
+      Optional.ofNullable(fields).orElse(Collections.emptyList()).forEach(field -> {
+        // TODO "expr": "SUMOF( \"productds.price\"  )", 고려 필요..
+        if(StringUtils.equals((String)field.get("dataSource"), fromDataSource.getEngineName())) {
+          field.put("dataSource", toDataSource.getEngineName());
+        }
+      });
+
+      List<Map<String, Object>> filters = (List<Map<String, Object>>)widgetConfiguration.get("filters");
+      Optional.ofNullable(filters).orElse(Collections.emptyList()).forEach(filter -> {
+        if(StringUtils.equals((String)filter.get("dataSource"), fromDataSource.getEngineName())) {
+          filter.put("dataSource", toDataSource.getEngineName());
+        }
+        if(StringUtils.equals((String)filter.get("ref"), fromDataSource.getEngineName())) {
+          filter.put("ref", toDataSource.getEngineName());
+        }
+      });
+
+      Map<String, Object> pivot = (Map<String, Object>) widgetConfiguration.get("pivot");
+      if(MapUtils.isNotEmpty(pivot)) {
+        changePivotElementInConfiguration((List<Map<String, Object>>)pivot.get("aggregations"), fromDataSource, toDataSource);
+        changePivotElementInConfiguration((List<Map<String, Object>>)pivot.get("columns"), fromDataSource, toDataSource);
+        changePivotElementInConfiguration((List<Map<String, Object>>)pivot.get("rows"), fromDataSource, toDataSource);
+      }
+
+      this.setConfigurationObject(widgetConfiguration);
+    }
+  }
+
+  private void changePivotElementInConfiguration(List<Map<String, Object>> pivotElements, DataSource fromDataSource, DataSource toDataSource) {
+    Optional.ofNullable(pivotElements).orElse(Collections.emptyList()).forEach(element -> {
+      if(StringUtils.equals((String)element.get("ref"), fromDataSource.getEngineName())) {
+        element.put("ref", toDataSource.getEngineName());
+      }
+
+      Map<String, Object> field = (Map<String, Object>) element.get("field");
+      if(MapUtils.isNotEmpty(field)) {
+        if(StringUtils.equals((String)field.get("dsId"), fromDataSource.getId())) {
+          field.put("dsId", toDataSource.getId());
+        }
+
+        if(StringUtils.equals((String)field.get("dataSource"), fromDataSource.getEngineName())) {
+          field.put("dataSource", toDataSource.getEngineName());
+        }
+
+        if(StringUtils.equals((String)field.get("ref"), fromDataSource.getEngineName())) {
+          field.put("ref", toDataSource.getEngineName());
+        }
+      }
+    });
+  }
 }

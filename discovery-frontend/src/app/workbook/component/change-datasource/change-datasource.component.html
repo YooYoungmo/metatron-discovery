@@ -1,0 +1,67 @@
+<!--
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="ddp-wrap-layout-popup" *ngIf="isShow">
+
+  <div class="ddp-box-popup">
+    <a href="javascript:" class="ddp-btn-close" (click)="close()"></a>
+    <!-- title -->
+    <div class="ddp-pop-title">데이터 소스 변경</div>
+    <!-- //title -->
+
+    <div class="ddp-wrap-editbox">
+      <div class="ddp-ui-db-type">
+        <label class="ddp-label-type">워크북에서 사용 중인 데이터소스</label>
+        <!-- edit option -->
+        <div class="ddp-ui-edit-option">
+          <!-- selectbox -->
+          <!-- 선택시 : ddp-selected 추가 -->
+          <component-select
+            [array]="datasourcesInWorkbook"
+            [viewKey]="'label'"
+            [defaultIndex]="defaultIndex"
+            (onSelected)="onChangeDataSourceInWorkbook($event)">
+          </component-select>
+          <!-- //selectbox -->
+        </div>
+        <!-- //edit option -->
+      </div>
+      <div style="font-size: 20px; text-align: center; font-weight: bold;">
+        &darr;
+      </div>
+      <div class="ddp-ui-db-type">
+        <label class="ddp-label-type">변경 가능한 데이터소스</label>
+        <!-- edit option -->
+        <div class="ddp-ui-edit-option">
+          <!-- selectbox -->
+          <!-- 선택시 : ddp-selected 추가 -->
+          <component-select
+            [array]="availableDatasources"
+            [viewKey]="'label'"
+            (onSelected)="onChangeAvailableDatasource($event)">
+          </component-select>
+          <!-- //selectbox -->
+        </div>
+        <!-- //edit option -->
+      </div>
+    </div>
+    <!-- button -->
+    <div class="ddp-ui-buttons">
+      <a href="javascript:" class="ddp-btn-type-popup" (click)="close()">{{'msg.comm.btn.cancl' | translate}}</a>
+      <a href="javascript:" class="ddp-btn-type-popup ddp-bg-black" (click)="changeDataSource()">{{'msg.comm.btn.done' | translate}}</a>
+    </div>
+    <!-- //button -->
+  </div>
+
+</div>

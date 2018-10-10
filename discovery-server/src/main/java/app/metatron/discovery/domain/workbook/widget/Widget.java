@@ -14,26 +14,26 @@
 
 package app.metatron.discovery.domain.workbook.widget;
 
-import com.google.common.collect.Lists;
-
-import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.validator.constraints.NotBlank;
-
-import java.util.List;
-
-import javax.persistence.*;
-import javax.validation.constraints.Size;
-
+import app.metatron.discovery.common.GlobalObjectMapper;
 import app.metatron.discovery.common.KeepAsJsonDeserialzier;
 import app.metatron.discovery.common.entity.Spec;
 import app.metatron.discovery.domain.AbstractHistoryEntity;
 import app.metatron.discovery.domain.MetatronDomain;
+import app.metatron.discovery.domain.datasource.DataSource;
 import app.metatron.discovery.domain.workbook.DashBoard;
 import app.metatron.discovery.domain.workbook.configurations.WidgetConfiguration;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.Lists;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.validator.constraints.NotBlank;
+
+import javax.persistence.*;
+import javax.validation.constraints.Size;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by kyungtaak on 2017. 7. 18..
@@ -155,4 +155,27 @@ public abstract class Widget extends AbstractHistoryEntity implements MetatronDo
     this.dashBoard = dashBoard;
   }
 
+  @JsonIgnore
+  public WidgetConfiguration getConfigurationObject() {
+    return GlobalObjectMapper.readValue(configuration, WidgetConfiguration.class);
+  }
+
+  public void setConfigurationObject(WidgetConfiguration widgetConfiguration) {
+    this.configuration = GlobalObjectMapper.writeValueAsString(widgetConfiguration);
+  }
+
+  @JsonIgnore
+  public Map<String, Object> getConfigurationToMap() {
+    return GlobalObjectMapper.readValue(configuration, Map.class);
+  }
+
+  public void setConfigurationFromMap(Map<String, Object> widgetConfiguration) {
+    this.configuration = GlobalObjectMapper.writeValueAsString(widgetConfiguration);
+  }
+
+  public void setConfigurationObject(Map<String, Object> widgetConfiguration) {
+    this.configuration = GlobalObjectMapper.writeValueAsString(widgetConfiguration);
+  }
+
+  public abstract void changeDataSource(DataSource fromDataSource, DataSource toDataSource);
 }

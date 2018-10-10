@@ -14,6 +14,7 @@
 
 package app.metatron.discovery.domain.workbook.widget;
 
+import app.metatron.discovery.domain.datasource.DataSource;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.persistence.Basic;
@@ -77,5 +78,9 @@ public class TextWidget extends Widget {
 
   public void setContents(String contents) {
     this.contents = contents;
+  }
+
+  @Override
+  public void changeDataSource(DataSource fromDataSource, DataSource toDataSource) {
   }
 }

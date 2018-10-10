@@ -14,28 +14,21 @@
 
 package app.metatron.discovery.domain.workbook;
 
-import com.google.common.collect.Maps;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-
-import org.springframework.data.rest.core.annotation.RestResource;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.persistence.CascadeType;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.Table;
-
 import app.metatron.discovery.domain.datasource.DataSource;
 import app.metatron.discovery.domain.workspace.Book;
 import app.metatron.discovery.domain.workspace.Workspace;
 import app.metatron.discovery.util.PolarisUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.google.common.collect.Maps;
+import org.springframework.data.rest.core.annotation.RestResource;
+
+import javax.persistence.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 /**
@@ -124,5 +117,15 @@ public class WorkBook extends Book {
 
   public void setDashBoards(List<DashBoard> dashBoards) {
     this.dashBoards = dashBoards;
+  }
+
+  public void changeDataSource(DataSource fromDataSource, DataSource toDataSource) {
+    // datasource validation.
+    fromDataSource.validateCompatibleDatasource(toDataSource);
+
+    List<DashBoard> dashBoards = this.getDashBoards();
+    Optional.ofNullable(dashBoards)
+        .orElse(Collections.emptyList())
+        .forEach(dashBoard -> dashBoard.changeDataSource(fromDataSource, toDataSource));
   }
 }

@@ -14,20 +14,6 @@
 
 package app.metatron.discovery.domain.workbook;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.validator.constraints.NotBlank;
-import org.springframework.data.rest.core.annotation.RestResource;
-
-import java.util.Set;
-
-import javax.persistence.*;
-import javax.validation.constraints.Size;
-
 import app.metatron.discovery.common.GlobalObjectMapper;
 import app.metatron.discovery.common.KeepAsJsonDeserialzier;
 import app.metatron.discovery.common.entity.Spec;
@@ -37,6 +23,21 @@ import app.metatron.discovery.domain.datasource.DataSource;
 import app.metatron.discovery.domain.workbook.configurations.BoardConfiguration;
 import app.metatron.discovery.domain.workbook.widget.Widget;
 import app.metatron.discovery.util.PolarisUtils;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.validator.constraints.NotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.rest.core.annotation.RestResource;
+
+import javax.persistence.*;
+import javax.validation.constraints.Size;
+import java.util.*;
 
 /**
  * Dash board
@@ -45,6 +46,7 @@ import app.metatron.discovery.util.PolarisUtils;
 @Entity
 @Table(name = "dashboard")
 public class DashBoard extends AbstractHistoryEntity implements MetatronDomain<String>  {
+  private static Logger LOGGER = LoggerFactory.getLogger(DashBoard.class);
 
   /**
    * ID
@@ -174,6 +176,15 @@ public class DashBoard extends AbstractHistoryEntity implements MetatronDomain<S
     return GlobalObjectMapper.readValue(configuration, BoardConfiguration.class);
   }
 
+  @JsonIgnore
+  public Map<String, Object> getConfigurationToMap() {
+    return GlobalObjectMapper.readValue(configuration, Map.class);
+  }
+
+  public void setConfigurationFromMap(Map<String, Object> boardConfiguration) {
+    this.configuration = GlobalObjectMapper.writeValueAsString(boardConfiguration);
+  }
+
   public String getId() {
     return id;
   }
@@ -204,6 +215,10 @@ public class DashBoard extends AbstractHistoryEntity implements MetatronDomain<S
 
   public void setConfiguration(String configuration) {
     this.configuration = configuration;
+  }
+
+  public void setConfigurationObject(BoardConfiguration boardConfiguration) {
+    this.configuration = GlobalObjectMapper.writeValueAsString(boardConfiguration);
   }
 
   public String getTemporaryId() {
@@ -268,6 +283,95 @@ public class DashBoard extends AbstractHistoryEntity implements MetatronDomain<S
 
   public void setWidgets(Set<Widget> widgets) {
     this.widgets = widgets;
+  }
+
+  public void changeDataSource(DataSource fromDataSource, DataSource toDataSource) {
+    final boolean dataSourceMatched = Optional.ofNullable(this.getDataSources()).orElse(Collections.emptySet())
+        .stream().anyMatch(dataSource -> dataSource.getId().equals(fromDataSource.getId()));
+
+    if(dataSourceMatched) {
+      this.getDataSources().remove(fromDataSource);
+      this.getDataSources().add(toDataSource);
+
+      Map<String, Object> boardConfiguration = this.getConfigurationToMap();
+      Map<String, Object> dataSource = (Map<String, Object>)boardConfiguration.get("dataSource");
+      final String dataSourceType = (String)dataSource.get("type");
+
+      if(dataSourceType.equals("default")) {
+        if(StringUtils.equals((String)dataSource.get("id"), fromDataSource.getId())) {
+          dataSource.put("id", toDataSource.getId());
+          dataSource.put("name", toDataSource.getEngineName());
+        }
+      } else if(dataSourceType.equals("multi")) {
+        List<Map<String, Object>> associations = ((List<Map<String, Object>>)dataSource.get("associations"));
+        Optional.ofNullable(associations).orElse(Collections.emptyList()).forEach(association -> {
+          if(StringUtils.equals((String)association.get("source"), fromDataSource.getEngineName())) {
+            association.put("source", toDataSource.getEngineName());
+          } else if(StringUtils.equals((String)association.get("target"), fromDataSource.getEngineName())) {
+            association.put("target", toDataSource.getEngineName());
+          }
+        });
+
+        List<Map<String, Object>> dataSources = ((List<Map<String, Object>>)dataSource.get("dataSources"));
+        Optional.ofNullable(dataSources).orElse(Collections.emptyList()).forEach(ds -> {
+          if(StringUtils.equals((String)ds.get("id"), fromDataSource.getId())) {
+            ds.put("id", toDataSource.getId());
+            ds.put("engineName", toDataSource.getEngineName());
+            ds.put("name", toDataSource.getEngineName());
+          }
+          changeJoinsDataSourceInConfiguration(ds, fromDataSource, toDataSource);
+        });
+
+      } else if(dataSourceType.equals("mapping")) {
+        if(StringUtils.equals((String)dataSource.get("id"), fromDataSource.getId())) {
+          dataSource.put("id", toDataSource.getId());
+          dataSource.put("engineName", toDataSource.getEngineName());
+          dataSource.put("name", toDataSource.getEngineName());
+        }
+
+        changeJoinsDataSourceInConfiguration(dataSource, fromDataSource, toDataSource);
+      } else {
+        LOGGER.warn("not supported. datasource configuration ....");
+      }
+
+      List<Map<String, Object>> filters = (List<Map<String, Object>>)boardConfiguration.get("filters");
+      Optional.ofNullable(filters).orElse(Collections.emptyList()).forEach(filter -> {
+        if(StringUtils.equals((String)filter.get("dataSource"), fromDataSource.getEngineName())) {
+          filter.put("dataSource", toDataSource.getEngineName());
+        }
+
+        if(StringUtils.equals((String)filter.get("ref"), fromDataSource.getEngineName())) {
+          filter.put("ref", toDataSource.getEngineName());
+        }
+      });
+      this.setConfigurationFromMap(boardConfiguration);
+
+      // Widget 변경
+      if(widgets != null) {
+        this.getWidgets().forEach(widget -> widget.changeDataSource(fromDataSource, toDataSource));
+      }
+    }
+  }
+
+  private void changeJoinsDataSourceInConfiguration(Map<String, Object> datasourceConfiguration,
+                                                    DataSource fromDataSource, DataSource toDataSource) {
+    List<Map<String, Object>> joins = (List<Map<String, Object>>)datasourceConfiguration.get("joins");
+    Optional.ofNullable(joins).orElse(Collections.emptyList()).forEach(join -> {
+      if(StringUtils.equals((String)join.get("id"), fromDataSource.getId())) {
+        join.put("id", toDataSource.getId());
+        join.put("engineName", toDataSource.getEngineName());
+        join.put("name", toDataSource.getEngineName());
+      }
+
+      Map<String, Object> joinOfJoin = (Map<String, Object>)join.get("join");
+      if(MapUtils.isNotEmpty(joinOfJoin)) {
+        if(StringUtils.equals((String)joinOfJoin.get("id"), fromDataSource.getId())) {
+          joinOfJoin.put("id", toDataSource.getId());
+          joinOfJoin.put("engineName", toDataSource.getEngineName());
+          joinOfJoin.put("name", toDataSource.getEngineName());
+        }
+      }
+    });
   }
 
   @PrePersist

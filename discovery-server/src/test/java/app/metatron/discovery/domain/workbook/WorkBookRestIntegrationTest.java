@@ -14,13 +14,17 @@
 
 package app.metatron.discovery.domain.workbook;
 
+import app.metatron.discovery.AbstractRestIntegrationTest;
+import app.metatron.discovery.TestUtils;
+import app.metatron.discovery.core.oauth.OAuthRequest;
+import app.metatron.discovery.core.oauth.OAuthTestExecutionListener;
+import app.metatron.discovery.domain.CollectionPatch;
+import app.metatron.discovery.domain.comment.Comment;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
-
 import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,13 +33,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 import java.util.List;
 import java.util.Map;
-
-import app.metatron.discovery.AbstractRestIntegrationTest;
-import app.metatron.discovery.TestUtils;
-import app.metatron.discovery.core.oauth.OAuthRequest;
-import app.metatron.discovery.core.oauth.OAuthTestExecutionListener;
-import app.metatron.discovery.domain.CollectionPatch;
-import app.metatron.discovery.domain.comment.Comment;
+import java.util.UUID;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.path.json.JsonPath.from;
@@ -410,7 +408,56 @@ public class WorkBookRestIntegrationTest extends AbstractRestIntegrationTest {
       .statusCode(HttpStatus.SC_OK)
       .log().all();
     // @formatter:on
+  }
+
+  @Test
+  @OAuthRequest(username = "polaris", value = {"PERM_WORKSPACE_WRITE_BOOK"})
+  @Sql("/sql/test_workbook_change_datasources.sql")
+  public void changeDataSources() {
+    final String workbookId = "923c4a89-1424-42b2-aa46-571036c1db45";
+    final String changeFromDataSourceId = "02653b82-61b4-4fb1-95cd-86ee41355ff9";
+    final String changeToDataSourceId = "bf7adcf3-e7f0-4d8c-a038-0f1422213165";
+
+    given()
+        .auth().oauth2(oauth_token)
+        .contentType(ContentType.JSON)
+        .body("[\n" +
+            "  {\n" +
+            "    \"fromDataSourceId\": \"" + changeFromDataSourceId + "\",\n" +
+            "    \"toDataSourceId\": \"" + changeToDataSourceId + "\"\n" +
+            "  }\n" +
+            "]")
+        .log().all()
+    .when()
+        .patch("/api/workbooks/{id}/datasources", workbookId)
+    .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT)
+        .log().all();
 
   }
 
+  @Test
+  @OAuthRequest(username = "polaris", value = {"PERM_WORKSPACE_WRITE_BOOK"})
+  @Sql("/sql/test_workbook_change_datasources.sql")
+  public void changeDataSources_incompatible_datasource() {
+    final String workbookId = "923c4a89-1424-42b2-aa46-571036c1db45";
+    final String changeFromDataSourceId = "02653b82-61b4-4fb1-95cd-86ee41355ff9";
+    final String changeToDataSourceId = "1bd43d9a-0ffb-4316-9be5-a060aaf4c22f";
+
+    given()
+        .auth().oauth2(oauth_token)
+        .contentType(ContentType.JSON)
+        .body("[\n" +
+            "  {\n" +
+            "    \"fromDataSourceId\": \"" + changeFromDataSourceId + "\",\n" +
+            "    \"toDataSourceId\": \"" + changeToDataSourceId + "\"\n" +
+            "  }\n" +
+            "]")
+        .log().all()
+    .when()
+        .patch("/api/workbooks/{id}/datasources", workbookId)
+    .then()
+        .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY)
+        .log().all();
+  }
 }

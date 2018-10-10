@@ -43,6 +43,7 @@ import { UpdateDashboardComponent } from '../dashboard/update-dashboard.componen
 import { PopupInputNameDescComponent } from './component/popup-input-workbook/popup-input-namedesc.component';
 import { EventBroadcaster } from '../common/event/event.broadcaster';
 import { Datasource } from '../domain/datasource/datasource';
+import {ChangeDatasourceComponent} from "./component/change-datasource/change-datasource.component";
 
 declare let $;
 
@@ -90,6 +91,10 @@ export class WorkbookComponent extends AbstractComponent implements OnInit, OnDe
 
   @ViewChild('inputDashboardDesc')
   private inputDashboardDesc: ElementRef;
+
+  @ViewChild(ChangeDatasourceComponent)
+  private changeDatasourceComponent: ChangeDatasourceComponent;
+
 
   // 워크스페이스 권한 확인기
   private _permissionChecker: PermissionChecker;
@@ -1136,6 +1141,10 @@ export class WorkbookComponent extends AbstractComponent implements OnInit, OnDe
       return '';
     }
   } // function - getEditorName
+
+  public openChangeDatasourceModel() {
+    this.changeDatasourceComponent.init(this.datasources, this.workbook.workspaceId, this.workbookId);
+  }
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    | Private Method

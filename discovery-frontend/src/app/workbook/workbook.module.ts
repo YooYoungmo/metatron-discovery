@@ -26,6 +26,8 @@ import { PopupInputNameDescComponent } from './component/popup-input-workbook/po
 import { DashboardShareModule } from '../dashboard/dashboard-share.module';
 import { CanDeactivateGuard } from '../common/gaurd/can.deactivate.guard';
 import { MetadataService } from '../meta-data-management/metadata/service/metadata.service';
+import {ChangeDatasourceComponent} from "./component/change-datasource/change-datasource.component";
+import {WorkspaceService} from "../workspace/service/workspace.service";
 
 const workbookRoutes: Routes = [
   { path: ':workbookId', component: WorkbookComponent, canDeactivate:[CanDeactivateGuard] },
@@ -44,9 +46,10 @@ const workbookRoutes: Routes = [
   ],
   declarations: [
     WorkbookComponent,
-    PopupInputNameDescComponent
+    PopupInputNameDescComponent,
+    ChangeDatasourceComponent,
   ],
-  providers: [WorkbookService, MetadataService, DashboardService, DataconnectionService]
+  providers: [WorkbookService, MetadataService, DashboardService, DataconnectionService, WorkspaceService]
 })
 export class WorkbookModule {
 }

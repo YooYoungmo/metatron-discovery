@@ -14,6 +14,8 @@
 
 package app.metatron.discovery.domain.workbook;
 
+import app.metatron.discovery.common.exception.ResourceNotFoundException;
+import app.metatron.discovery.domain.workbook.dto.ChangingWorkbookDataSource;
 import com.google.common.collect.Lists;
 
 import com.querydsl.core.BooleanBuilder;
@@ -36,7 +38,6 @@ import app.metatron.discovery.domain.workspace.WorkspaceService;
 
 
 @Component
-@Transactional(readOnly = true)
 public class WorkBookService {
 
   @Autowired
@@ -57,6 +58,7 @@ public class WorkBookService {
   @Autowired
   WorkspaceService workspaceService;
 
+  @Transactional(readOnly = true)
   public List<DataSource> getAllDataSourceInDashboard(String workbookId) {
 
     QDataSource dataSource = QDataSource.dataSource;
@@ -74,5 +76,23 @@ public class WorkBookService {
 
     return Lists.newArrayList(dataSourceRepository.findAll(booleanBuilder,
                                                            new Sort(new Sort.Order(Sort.Direction.ASC, "name"))));
+  }
+
+  @Transactional
+  public void changeDataSources(String workbookId, List<ChangingWorkbookDataSource> changingWorkbookDataSources) {
+    WorkBook workbook = workBookRepository.findOne(workbookId);
+    if(workbook == null) {
+      throw new ResourceNotFoundException(workbookId);
+    }
+
+    changingWorkbookDataSources.forEach(changeDataSource -> {
+      DataSource fromDataSource = dataSourceRepository.findOne(changeDataSource.getFromDataSourceId());
+      DataSource toDataSource = dataSourceRepository.findOne(changeDataSource.getToDataSourceId());
+
+      workbook.changeDataSource(fromDataSource, toDataSource);
+    });
+
+    workBookRepository.save(workbook);
+
   }
 }

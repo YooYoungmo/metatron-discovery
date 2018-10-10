@@ -120,4 +120,14 @@ export class WorkbookService extends AbstractService {
   public deleteComment(workbookId: string, commentId: string): Promise<any> {
     return this.delete(this.API_URL + 'workbooks/' + workbookId + '/comments/' + commentId);
   }
+
+  public changeDataSource(workbookId: string, changeFromDataSourceId: string, changeToDataSourceId: string): Promise<any> {
+    const param = [
+      {
+        fromDataSourceId: changeFromDataSourceId,
+        toDataSourceId: changeToDataSourceId
+      }
+    ];
+    return this.patch(this.API_URL + 'workbooks/' + workbookId + '/datasources', param);
+  }
 }
