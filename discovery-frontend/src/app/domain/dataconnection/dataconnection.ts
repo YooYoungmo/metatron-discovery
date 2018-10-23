@@ -50,6 +50,8 @@ export class Dataconnection extends AbstractHistoryEntity {
 
   // for UI
   public num:number;
+
+  public supportSaveAsHive: boolean;
 }
 
 export enum ConnectionType {
