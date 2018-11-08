@@ -24,7 +24,7 @@ import app.metatron.discovery.domain.datasource.ingestion.jdbc.JdbcIngestionInfo
 import app.metatron.discovery.domain.engine.EngineProperties;
 import app.metatron.discovery.domain.mdm.source.MetadataSource;
 import app.metatron.discovery.domain.mdm.source.MetadataSourceRepository;
-import app.metatron.discovery.domain.workbench.HiveNamingRule;
+import app.metatron.discovery.domain.workbench.hive.HiveNamingRule;
 import app.metatron.discovery.domain.workbench.Workbench;
 import app.metatron.discovery.domain.workbench.WorkbenchRepository;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSourceUtils;
@@ -35,7 +35,6 @@ import com.querydsl.core.types.Predicate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.opensaml.xml.signature.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

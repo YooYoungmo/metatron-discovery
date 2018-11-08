@@ -99,7 +99,7 @@ export class SaveAsHiveTableComponent extends AbstractComponent implements OnIni
       const params = {
         tableName: this.tableName,
         webSocketId: this.webSocketId,
-        storedQueryResultId: this.storedQueryResultId,
+        storedFileId: this.storedQueryResultId,
         loginUserId: CommonUtil.getLoginUserId()
       };
 

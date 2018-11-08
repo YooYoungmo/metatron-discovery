@@ -237,6 +237,10 @@ export class WorkbenchService extends AbstractService {
     return this.post(this.API_URL + `queryeditors/${queryEditorId}/query/save-as-hive`, params);
   }
 
+  public importFile(workbenchId: string, params: any) {
+    return this.post(this.API_URL + `workbenchs/${workbenchId}/import`, params);
+  }
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   | Protected Method
   |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/

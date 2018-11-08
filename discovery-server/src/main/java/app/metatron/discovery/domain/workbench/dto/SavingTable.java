@@ -4,8 +4,7 @@ public class SavingTable {
   private String tableName;
   private String webSocketId;
   private String loginUserId;
-  private String storedQueryResultId;
-  private String queryEditorId;
+  private String storedFileId;
 
   public String getTableName() {
     return tableName;
@@ -31,19 +30,11 @@ public class SavingTable {
     this.loginUserId = loginUserId;
   }
 
-  public String getQueryEditorId() {
-    return queryEditorId;
+  public String getStoredFileId() {
+    return storedFileId;
   }
 
-  public void setQueryEditorId(String queryEditorId) {
-    this.queryEditorId = queryEditorId;
-  }
-
-  public String getStoredQueryResultId() {
-    return storedQueryResultId;
-  }
-
-  public void setStoredQueryResultId(String storedQueryResultId) {
-    this.storedQueryResultId = storedQueryResultId;
+  public void setStoredFileId(String storedFileId) {
+    this.storedFileId = storedFileId;
   }
 }

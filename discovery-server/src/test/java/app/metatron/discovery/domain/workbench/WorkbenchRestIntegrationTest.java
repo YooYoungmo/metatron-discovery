@@ -14,19 +14,32 @@
 
 package app.metatron.discovery.domain.workbench;
 
+import app.metatron.discovery.TestLocalHdfs;
+import app.metatron.discovery.domain.datasource.connection.jdbc.HiveConnection;
+import app.metatron.discovery.domain.workbench.util.WorkbenchDataSourceUtils;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.fs.Path;
+import org.apache.hive.jdbc.HiveDriver;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
+import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.Assert;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +53,7 @@ import app.metatron.discovery.domain.workspace.folder.Folder;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.path.json.JsonPath.from;
+import static org.junit.Assert.fail;
 
 /**
  * Created by kyungtaak on 2016. 11. 29..
@@ -471,5 +485,118 @@ public class WorkbenchRestIntegrationTest extends AbstractRestIntegrationTest {
     // @formatter:on
   }
 
+  @Test
+  @OAuthRequest(username = "polaris", value = {"PERM_WORKSPACE_WRITE_BOOK"})
+  public void importFileToPersonalDatabase_when_file_extension_csv() throws IOException, InterruptedException {
+    // given
+    final String webSocketId = "test-ws";
+    final String filePath = getClass().getClassLoader().getResource("sales.csv").getPath();
+    final String loginUserId = "polaris";
 
+    HiveConnection hiveConnection = new HiveConnection();
+    hiveConnection.setUsername("read_only");
+    hiveConnection.setPassword("1111");
+    hiveConnection.setSecondaryUsername("hive_admin");
+    hiveConnection.setSecondaryPassword("1111");
+    hiveConnection.setHostname("localhost");
+    hiveConnection.setPort(10000);
+    hiveConnection.setPersonalDatabasePrefix("private");
+    hiveConnection.setHdfsConfigurationPath(Paths.get("src/test/hdfs-conf").toAbsolutePath().toString());
+    WorkbenchDataSourceUtils.createDataSourceInfo(hiveConnection, webSocketId, hiveConnection.getUsername(), hiveConnection.getPassword(), false);
+
+    cleanUpHivePersonalDatabaseTestFixture(hiveConnection, loginUserId);
+    cleanUpHdfsTempMetatronUserHomeTestFixture(loginUserId);
+
+    // REST when, then
+    final String workbenchId = "workbench-05";
+    final String requestBody = "{" +
+        "  \"type\": \"csv\"," +
+        "  \"tableName\": \"sales_2018\"," +
+        "  \"firstRowHeadColumnUsed\": true," +
+        "  \"uploadedFilePath\": \"" + filePath + "\"," +
+        "  \"loginUserId\": \"" + loginUserId + "\"," +
+        "  \"webSocketId\": \"" + webSocketId + "\"," +
+        "  \"lineSep\": \"\\n\"," +
+        "  \"delimiter\": \",\"" +
+        "}";
+
+    given()
+        .auth().oauth2(oauth_token)
+        .contentType(ContentType.JSON)
+        .body(requestBody)
+    .when()
+        .post("/api/workbenchs/{id}/import", workbenchId)
+    .then()
+        .log().all()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+  }
+
+  @Test
+  @OAuthRequest(username = "polaris", value = {"PERM_WORKSPACE_WRITE_BOOK"})
+  public void importFileToPersonalDatabase_when_file_extension_excel() throws IOException, InterruptedException {
+    // given
+    final String webSocketId = "test-ws";
+    final String filePath = getClass().getClassLoader().getResource("sales-product.xlsx").getPath();
+    final String loginUserId = "polaris";
+
+    HiveConnection hiveConnection = new HiveConnection();
+    hiveConnection.setUsername("read_only");
+    hiveConnection.setPassword("1111");
+    hiveConnection.setSecondaryUsername("hive_admin");
+    hiveConnection.setSecondaryPassword("1111");
+    hiveConnection.setHostname("localhost");
+    hiveConnection.setPort(10000);
+    hiveConnection.setPersonalDatabasePrefix("private");
+    hiveConnection.setHdfsConfigurationPath(Paths.get("src/test/hdfs-conf").toAbsolutePath().toString());
+    WorkbenchDataSourceUtils.createDataSourceInfo(hiveConnection, webSocketId, hiveConnection.getUsername(), hiveConnection.getPassword(), false);
+
+    cleanUpHivePersonalDatabaseTestFixture(hiveConnection, loginUserId);
+    cleanUpHdfsTempMetatronUserHomeTestFixture(loginUserId);
+
+    // REST when, then
+    final String workbenchId = "workbench-05";
+    final String requestBody = "{" +
+        "  \"type\": \"excel\"," +
+        "  \"sheetName\": \"sales\"," +
+        "  \"tableName\": \"sales_2019\"," +
+        "  \"firstRowHeadColumnUsed\": true," +
+        "  \"uploadedFilePath\": \"" + filePath + "\"," +
+        "  \"loginUserId\": \"" + loginUserId + "\"," +
+        "  \"webSocketId\": \"" + webSocketId + "\"" +
+        "}";
+    given()
+        .auth().oauth2(oauth_token)
+        .contentType(ContentType.JSON)
+        .body(requestBody)
+    .when()
+        .post("/api/workbenchs/{id}/import", workbenchId)
+    .then()
+        .log().all()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+  }
+
+  private void cleanUpHdfsTempMetatronUserHomeTestFixture(String loginUserId) throws IOException, InterruptedException {
+    TestLocalHdfs testLocalHdfs = new TestLocalHdfs();
+
+    Path userHomePath = new Path(String.format("/tmp/metatron/%s", loginUserId));
+    testLocalHdfs.delete(userHomePath);
+  }
+
+  private void cleanUpHivePersonalDatabaseTestFixture(HiveConnection hiveConnection, String loginUserId) {
+    final String URL = String.format("jdbc:hive2://%s:%s", hiveConnection.getHostname(), hiveConnection.getPort());
+
+    Connection conn = null;
+    try{
+      Class.forName(HiveDriver.class.getName());
+      conn = DriverManager.getConnection(URL, hiveConnection.getSecondaryUsername(), hiveConnection.getSecondaryPassword());
+
+      StringBuffer script = new StringBuffer();
+      script.append(String.format("DROP DATABASE IF EXISTS %s_%s CASCADE;", hiveConnection.getPersonalDatabasePrefix(), loginUserId));
+      ScriptUtils.executeSqlScript(conn, new InputStreamResource(new ByteArrayInputStream(script.toString().getBytes())));
+    } catch(Exception e){
+      e.printStackTrace();
+    } finally{
+      JdbcUtils.closeConnection(conn);
+    }
+  }
 }

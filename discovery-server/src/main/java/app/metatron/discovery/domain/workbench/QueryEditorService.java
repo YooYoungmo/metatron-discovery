@@ -22,6 +22,8 @@ import app.metatron.discovery.domain.datasource.Field;
 import app.metatron.discovery.domain.datasource.connection.jdbc.HiveConnection;
 import app.metatron.discovery.domain.datasource.connection.jdbc.JdbcConnectionService;
 import app.metatron.discovery.domain.datasource.connection.jdbc.JdbcDataConnection;
+import app.metatron.discovery.domain.workbench.hive.DataTable;
+import app.metatron.discovery.domain.workbench.hive.WorkbenchHiveService;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSource;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSourceUtils;
 import app.metatron.discovery.util.AuthUtils;
@@ -61,6 +63,7 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static app.metatron.discovery.domain.workbench.WorkbenchErrorCodes.CSV_FILE_NOT_FOUND;
 
@@ -85,7 +88,7 @@ public class QueryEditorService {
   public SimpMessageSendingOperations messagingTemplate;
 
   @Autowired
-  private QueryResultRepository queryResultRepository;
+  private WorkbenchHiveService workbenchHiveService;
 
   public QueryStatus getQueryStatus(String webSocketId) {
     WorkbenchDataSource dataSourceInfo = WorkbenchDataSourceUtils.findDataSourceInfo(webSocketId);
@@ -345,8 +348,11 @@ public class QueryEditorService {
                 && ((HiveConnection)jdbcDataConnection).isSupportSaveAsHive()
                 && CollectionUtils.isNotEmpty(queryResult.getData())) {
               try {
-                String storedQueryResultId = queryResultRepository.save(jdbcDataConnection, loginUserId, queryEditorId, queryResult);
-                queryResult.setStoredQueryResultId(storedQueryResultId);
+                List<String> dataTableFields = queryResult.getFields().stream().map(field -> field.getName()).collect(Collectors.toList());
+                String additionalPath = queryEditorId;
+                DataTable dataTable = new DataTable(dataTableFields, queryResult.getData());
+                String storedFileId = workbenchHiveService.saveDataTableToHdfs((HiveConnection)jdbcDataConnection, loginUserId, dataTable, additionalPath);
+                queryResult.setStoredQueryResultId(storedFileId);
                 queryResult.setResultStored(true);
               } catch(Exception e) {
                 LOGGER.error(e.getMessage(), e);
