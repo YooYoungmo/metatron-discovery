@@ -52,6 +52,8 @@ import { SYSTEM_PERMISSION } from '../common/permission/permission';
 import { PermissionChecker, Workspace } from '../domain/workspace/workspace';
 import { WorkspaceService } from '../workspace/service/workspace.service';
 import { CodemirrorComponent } from './component/editor-workbench/codemirror.component';
+import {SaveAsHiveTableComponent} from "./component/save-as-hive-table/save-as-hive-table.component";
+import {DetailWorkbenchDatabase} from "./component/detail-workbench/detail-workbench-database/detail-workbench-database";
 
 declare let moment: any;
 declare let Split;
@@ -91,6 +93,9 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   @ViewChild(LoadingComponent)
   private loadingBar: LoadingComponent;
 
+  @ViewChild(DetailWorkbenchDatabase)
+  private detailWorkbenchDatabase: DetailWorkbenchDatabase;
+
   // 선택된 탭 번호
   private selectedTabNum: number = 0;
 
@@ -129,6 +134,9 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
 
   @ViewChild('questionWrap')
   private _questionWrap: ElementRef;
+
+  @ViewChild(SaveAsHiveTableComponent)
+  private saveAsHiveTableComponent: SaveAsHiveTableComponent;
 
   // request reconnect count
   private _executeSqlReconnectCnt: number = 0;
@@ -263,6 +271,8 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   // 데이터 메니저 여부
   public isDataManager: boolean = false;
 
+  public saveAsLayer: boolean = false;
+
   @ViewChild('wbName')
   private wbName: ElementRef;
   @ViewChild('wbDesc')
@@ -319,6 +329,9 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
 
   public tableSchemaParams:any;   // table schema search parameter
   public isOpenTableSchema:boolean = false;
+
+  public supportSaveAsHive: boolean = false;
+  public queryResultStored: boolean = false;
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    | Constructor
@@ -935,6 +948,12 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
             $('.myGrid').html('<div class="ddp-text-result ddp-nodata">' + this.translateService.instant('msg.storage.ui.no.data') + '</div>');
           }
         }
+
+        if(tabItem.result && tabItem.result.resultStored) {
+          this.queryResultStored = tabItem.result.resultStored;
+        } else {
+          this.queryResultStored = false;
+        }
         selectedTab = tabItem;
 
       } else {
@@ -1226,14 +1245,18 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
    * run query
    * @param {string} resultTabId
    */
-  public runQueries(resultTabId: string) {
-
+  public runQueries(resultTabId: string, retry: boolean = false) {
     const resultTab: ResultTab = this._getResultTab(resultTabId);
     resultTab.initialize();
     resultTab.executeTimer();
     this.runningResultTabId = resultTab.id;
 
-    this.workbenchService.runSingleQueryWithInvalidQuery(resultTab.queryEditor)
+    let queryIndex = -1;
+    if(retry == false) {
+      queryIndex = this.currentRunningIndex;
+    }
+
+    this.workbenchService.runSingleQueryWithInvalidQuery(resultTab.queryEditor, queryIndex)
       .then((result) => {
         this.loadingBar.hide();
 
@@ -1291,7 +1314,7 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
           this.safelyDetectChanges();
 
           this.executeTabIds = [item.id];
-          this.runQueries(item.id);
+          this.runQueries(item.id, true);
         }
       })
       .catch((error) => {
@@ -1782,6 +1805,9 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
           connectWebSocket.call(this);
 
           this.isDataManager = CommonUtil.isValidPermission(SYSTEM_PERMISSION.MANAGE_DATASOURCE);
+          if(data.dataConnection.supportSaveAsHive) {
+            this.supportSaveAsHive = data.dataConnection.supportSaveAsHive;
+          }
 
           this.setWorkbenchName();
           this.setWorkbenchDesc();
@@ -1919,6 +1945,12 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
       resultTab.message = data.message;
     } else {
       resultTab.name = this._genResultTabName(resultTab.queryEditor.name, 'RESULT', resultTab.order);
+
+      if(resultTab.order === 1) {
+        if(this.supportSaveAsHive && resultTab.result && resultTab.result.resultStored) {
+          this.queryResultStored = resultTab.result.resultStored;
+        }
+      }
     }
 
     // 에디터 결과 슬라이드 버튼 계산
@@ -2523,6 +2555,19 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
 
   } // function - createDatasource
 
+  public saveAsHiveTable() {
+    const currentTab: ResultTab = this._getCurrentResultTab();
+    this.saveAsHiveTableComponent.init(currentTab.editorId, this.websocketId, currentTab.result.auditId, currentTab.id);
+  }
+
+  public saveAsHiveTableSucceed(resultTabId: string) {
+    this.queryResultStored = false;
+    const currentTab: ResultTab = this._getResultTab(resultTabId);
+    currentTab.result.resultStored = false;
+
+    this.detailWorkbenchDatabase.getDatabase();
+  }
+
   /**
    * 데이터 소스 생성 후 처리
    */
@@ -3115,6 +3160,8 @@ class QueryResult {
   public tempTable: string;
   public defaultNumRows: number = 0;  // pageSize, 페이지당 호출 건 수
   public maxNumRows: number = 0;      // 최대 호출 가능 건 수
+  public resultStored: boolean;
+  public auditId: string;
 }
 
 enum DataConnectionType {
