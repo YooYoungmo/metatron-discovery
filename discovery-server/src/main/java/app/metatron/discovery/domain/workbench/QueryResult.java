@@ -59,6 +59,8 @@ public class QueryResult implements Serializable {
 
   Boolean resultStored;
 
+  String storedQueryResultId;
+
   public enum QueryResultStatus {
     SUCCESS, FAIL, CANCELLED, RUNNING, ALL
   }
@@ -189,6 +191,14 @@ public class QueryResult implements Serializable {
 
   public void setResultStored(Boolean resultStored) {
     this.resultStored = resultStored;
+  }
+
+  public String getStoredQueryResultId() {
+    return storedQueryResultId;
+  }
+
+  public void setStoredQueryResultId(String storedQueryResultId) {
+    this.storedQueryResultId = storedQueryResultId;
   }
 
   @Override

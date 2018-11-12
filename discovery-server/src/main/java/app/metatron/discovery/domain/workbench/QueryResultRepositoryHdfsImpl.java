@@ -17,10 +17,7 @@ import scala.Array;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.PrivilegedExceptionAction;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
@@ -35,11 +32,12 @@ public class QueryResultRepositoryHdfsImpl implements QueryResultRepository {
   }
 
   @Override
-  public void save(JdbcDataConnection jdbcDataConnection, String metatronUserId, String queryEditorId, QueryResult queryResult) {
+  public String save(JdbcDataConnection jdbcDataConnection, String metatronUserId, String queryEditorId, QueryResult queryResult) {
     if(jdbcDataConnection instanceof HiveConnection
         && ((HiveConnection) jdbcDataConnection).isSupportSaveAsHive()) {
       HiveConnection hiveConnection = (HiveConnection)jdbcDataConnection;
       final String hiveAdminUser = hiveConnection.getSecondaryUsername();
+      final String storedQueryResultId = UUID.randomUUID().toString();
 
       FileSystem fs = null;
       try {
@@ -57,16 +55,16 @@ public class QueryResultRepositoryHdfsImpl implements QueryResultRepository {
           }
         }
 
-        Path headerFilePath = makeQueryResultFilePath(queryResultPath, queryResult.getAuditId(), StoreFileType.HEADER);
+        Path headerFilePath = makeQueryResultFilePath(queryResultPath, storedQueryResultId, StoreFileType.HEADER);
         List<String> fields = queryResult.getFields().stream().map(field -> field.getName()).collect(Collectors.toList());
         try(OutputStream out = fs.create(headerFilePath)) {
-         out.write(GlobalObjectMapper.getDefaultMapper().writeValueAsString(fields).getBytes());
+          out.write(GlobalObjectMapper.getDefaultMapper().writeValueAsString(fields).getBytes());
         } catch(Exception e) {
           String errorMessage = String.format("failed write file to HDFS : %s", headerFilePath.toString());
           throw new MetatronException(errorMessage, e);
         }
 
-        Path dataFilePath = makeQueryResultFilePath(queryResultPath, queryResult.getAuditId(), StoreFileType.DATA);
+        Path dataFilePath = makeQueryResultFilePath(queryResultPath, storedQueryResultId, StoreFileType.DATA);
         try(OutputStream out = fs.create(dataFilePath)) {
           for (Map<String, Object> row : queryResult.getData()) {
             String newRow = fields.stream()
@@ -91,6 +89,9 @@ public class QueryResultRepositoryHdfsImpl implements QueryResultRepository {
           }
         }
       }
+      return storedQueryResultId;
+    } else {
+      return null;
     }
   }
 
@@ -130,7 +131,7 @@ public class QueryResultRepositoryHdfsImpl implements QueryResultRepository {
   }
 
   @Override
-  public QueryResultMetaData findMetaData(JdbcDataConnection jdbcDataConnection, String metatronUserId, String queryEditorId, String auditId) {
+  public QueryResultMetaData findMetaData(JdbcDataConnection jdbcDataConnection, String metatronUserId, String queryEditorId, String storedQueryResultId) {
     if(jdbcDataConnection instanceof HiveConnection
         && ((HiveConnection) jdbcDataConnection).isSupportSaveAsHive()) {
       HiveConnection hiveConnection = (HiveConnection)jdbcDataConnection;
@@ -140,9 +141,9 @@ public class QueryResultRepositoryHdfsImpl implements QueryResultRepository {
         fs = getFileSystem(hiveConnection.getHdfsConfigurationPath(), hiveAdminUser);
 
         Path headerFilePath = makeQueryResultFilePath(
-            makeQueryResultPath(makeUserHomePath(metatronUserId), queryEditorId), auditId, StoreFileType.HEADER);
+            makeQueryResultPath(makeUserHomePath(metatronUserId), queryEditorId), storedQueryResultId, StoreFileType.HEADER);
         Path dataFilePath = makeQueryResultFilePath(
-            makeQueryResultPath(makeUserHomePath(metatronUserId), queryEditorId), auditId, StoreFileType.DATA);
+            makeQueryResultPath(makeUserHomePath(metatronUserId), queryEditorId), storedQueryResultId, StoreFileType.DATA);
 
         if(fs.exists(headerFilePath) && fs.exists(dataFilePath)) {
           try(FSDataInputStream in = fs.open(headerFilePath)) {
