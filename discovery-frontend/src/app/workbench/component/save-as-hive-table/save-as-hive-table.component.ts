@@ -34,7 +34,7 @@ export class SaveAsHiveTableComponent extends AbstractComponent implements OnIni
   public tableName: string = '';
   private queryEditorId: string = '';
   private webSocketId: string = '';
-  private auditId: string = '';
+  private storedQueryResultId: string = '';
   private resultTabId: string = '';
 
   @Output()
@@ -64,11 +64,11 @@ export class SaveAsHiveTableComponent extends AbstractComponent implements OnIni
     super.ngOnDestroy();
   }
 
-  public init(queryEditorId: string, webSocketId: string, auditId: string, resultTabId: string) {
+  public init(queryEditorId: string, webSocketId: string, storedQueryResultId: string, resultTabId: string) {
     this.isShow = true;
     this.queryEditorId = queryEditorId;
     this.webSocketId = webSocketId;
-    this.auditId = auditId;
+    this.storedQueryResultId = storedQueryResultId;
     this.tableName = '';
     this.resultTabId = resultTabId;
   }
@@ -99,7 +99,7 @@ export class SaveAsHiveTableComponent extends AbstractComponent implements OnIni
       const params = {
         tableName: this.tableName,
         webSocketId: this.webSocketId,
-        auditId: this.auditId,
+        storedQueryResultId: this.storedQueryResultId,
         loginUserId: CommonUtil.getLoginUserId()
       };
 

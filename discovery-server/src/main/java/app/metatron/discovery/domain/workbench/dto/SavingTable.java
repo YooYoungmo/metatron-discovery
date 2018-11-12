@@ -4,7 +4,7 @@ public class SavingTable {
   private String tableName;
   private String webSocketId;
   private String loginUserId;
-  private String auditId;
+  private String storedQueryResultId;
   private String queryEditorId;
 
   public String getTableName() {
@@ -31,14 +31,6 @@ public class SavingTable {
     this.loginUserId = loginUserId;
   }
 
-  public String getAuditId() {
-    return auditId;
-  }
-
-  public void setAuditId(String auditId) {
-    this.auditId = auditId;
-  }
-
   public String getQueryEditorId() {
     return queryEditorId;
   }
@@ -47,14 +39,11 @@ public class SavingTable {
     this.queryEditorId = queryEditorId;
   }
 
-  @Override
-  public String toString() {
-    return "SavingTable{" +
-        "tableName='" + tableName + '\'' +
-        ", webSocketId='" + webSocketId + '\'' +
-        ", loginUserId='" + loginUserId + '\'' +
-        ", auditId='" + auditId + '\'' +
-        ", queryEditorId='" + queryEditorId + '\'' +
-        '}';
+  public String getStoredQueryResultId() {
+    return storedQueryResultId;
+  }
+
+  public void setStoredQueryResultId(String storedQueryResultId) {
+    this.storedQueryResultId = storedQueryResultId;
   }
 }

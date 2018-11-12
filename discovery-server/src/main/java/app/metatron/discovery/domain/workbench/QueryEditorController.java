@@ -160,7 +160,7 @@ public class QueryEditorController {
     }
     //3. 쿼리 실행 서비스 호출
     List<QueryResult> queryResults = queryEditorService.getQueryResult(queryEditor, jdbcDataConnection, workbench,
-            query, webSocketId, database);
+            query, webSocketId, database, requestBody.getLoginUserId());
 
     //4. Audit에 쿼리 결과 저장 (Hive Audit Hook와 충돌 방지 하기 위해 Controller 레벨에서 수행함)
     //Hive Hook에서 Update할때 버전이 안맞아 업데이트 에러방지
@@ -169,18 +169,6 @@ public class QueryEditorController {
       Audit.AuditStatus auditStatus;
       if(queryResult.getQueryResultStatus() == QueryResult.QueryResultStatus.SUCCESS){
         auditStatus = Audit.AuditStatus.SUCCESS;
-
-        if(jdbcDataConnection instanceof HiveConnection
-            && ((HiveConnection)jdbcDataConnection).isSupportSaveAsHive()
-            && CollectionUtils.isNotEmpty(queryResult.getData())) {
-          try {
-            queryResultRepository.save(jdbcDataConnection, requestBody.getLoginUserId(), queryEditor.getId(), queryResult);
-            queryResult.setResultStored(true);
-          } catch(Exception e) {
-            LOGGER.error(e.getMessage(), e);
-            queryResult.setResultStored(false);
-          }
-        }
       } else {
         auditStatus = Audit.AuditStatus.FAIL;
       }

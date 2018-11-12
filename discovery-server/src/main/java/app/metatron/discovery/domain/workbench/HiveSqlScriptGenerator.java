@@ -31,7 +31,7 @@ public class HiveSqlScriptGenerator {
     script.append(String.format("CREATE DATABASE IF NOT EXISTS %s;", personalDatabaseName));
 
     // 2. Create Table
-    QueryResultMetaData queryResultMetaData = queryResultRepository.findMetaData(jdbcDataConnection, savingTable.getLoginUserId(), savingTable.getQueryEditorId(), savingTable.getAuditId());
+    QueryResultMetaData queryResultMetaData = queryResultRepository.findMetaData(jdbcDataConnection, savingTable.getLoginUserId(), savingTable.getQueryEditorId(), savingTable.getStoredQueryResultId());
 
     List<String> headers = queryResultMetaData.getHeaders();
     String queryResultDataPath = queryResultMetaData.getDataPath();
