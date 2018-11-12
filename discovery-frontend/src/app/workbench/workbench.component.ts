@@ -2557,7 +2557,7 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
 
   public saveAsHiveTable() {
     const currentTab: ResultTab = this._getCurrentResultTab();
-    this.saveAsHiveTableComponent.init(currentTab.editorId, this.websocketId, currentTab.result.auditId, currentTab.id);
+    this.saveAsHiveTableComponent.init(currentTab.editorId, this.websocketId, currentTab.result.storedQueryResultId, currentTab.id);
   }
 
   public saveAsHiveTableSucceed(resultTabId: string) {
@@ -3161,7 +3161,7 @@ class QueryResult {
   public defaultNumRows: number = 0;  // pageSize, 페이지당 호출 건 수
   public maxNumRows: number = 0;      // 최대 호출 가능 건 수
   public resultStored: boolean;
-  public auditId: string;
+  public storedQueryResultId: string;
 }
 
 enum DataConnectionType {

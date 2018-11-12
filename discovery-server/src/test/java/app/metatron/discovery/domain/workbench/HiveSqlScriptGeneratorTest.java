@@ -30,16 +30,16 @@ public class HiveSqlScriptGeneratorTest {
 
     SavingTable savingTable = new SavingTable();
     savingTable.setQueryEditorId(UUID.randomUUID().toString());
-    savingTable.setAuditId(UUID.randomUUID().toString());
     savingTable.setLoginUserId("polaris");
     savingTable.setWebSocketId("test-socket");
     savingTable.setTableName("abc_123");
 
+    String storedQueryResultId = UUID.randomUUID().toString();
     QueryResultRepository mockQueryResultRepository = mock(QueryResultRepository.class);
     QueryResultMetaData queryResultMetaData = new QueryResultMetaData(Arrays.asList("year", "temperature", "quality"),
-        String.format("/tmp/metatron/%s/%s/%s.dat", savingTable.getLoginUserId(), savingTable.getQueryEditorId(), savingTable.getAuditId()));
+        String.format("/tmp/metatron/%s/%s/%s.dat", savingTable.getLoginUserId(), savingTable.getQueryEditorId(), storedQueryResultId));
     stub(mockQueryResultRepository.findMetaData(hiveConnection,
-        savingTable.getLoginUserId(), savingTable.getQueryEditorId(), savingTable.getAuditId())).toReturn(queryResultMetaData);
+        savingTable.getLoginUserId(), savingTable.getQueryEditorId(), storedQueryResultId)).toReturn(queryResultMetaData);
 
     // when
     HiveSqlScriptGenerator generator = new HiveSqlScriptGenerator();
@@ -74,16 +74,16 @@ public class HiveSqlScriptGeneratorTest {
 
     SavingTable savingTable = new SavingTable();
     savingTable.setQueryEditorId(UUID.randomUUID().toString());
-    savingTable.setAuditId(UUID.randomUUID().toString());
     savingTable.setLoginUserId("polaris");
     savingTable.setWebSocketId("test-socket");
     savingTable.setTableName("abc_123");
 
+    String storedQueryResultId = UUID.randomUUID().toString();
     QueryResultRepository mockQueryResultRepository = mock(QueryResultRepository.class);
     QueryResultMetaData queryResultMetaData = new QueryResultMetaData(Arrays.asList("records.year", "records.temperature", "records.quality"),
-        String.format("/tmp/metatron/%s/%s/%s.dat", savingTable.getLoginUserId(), savingTable.getQueryEditorId(), savingTable.getAuditId()));
+        String.format("/tmp/metatron/%s/%s/%s.dat", savingTable.getLoginUserId(), savingTable.getQueryEditorId(), storedQueryResultId));
     stub(mockQueryResultRepository.findMetaData(hiveConnection,
-        savingTable.getLoginUserId(), savingTable.getQueryEditorId(), savingTable.getAuditId())).toReturn(queryResultMetaData);
+        savingTable.getLoginUserId(), savingTable.getQueryEditorId(), storedQueryResultId)).toReturn(queryResultMetaData);
 
     // when
     HiveSqlScriptGenerator generator = new HiveSqlScriptGenerator();
