@@ -372,10 +372,12 @@ public class DataConnectionController {
   }
 
   private List<String> filterOtherPersonalDatabases(List<String> databases, String personalDatabasePrefix, String loginUserId) {
+    final String personalDatabase = String.format("%s_%s", personalDatabasePrefix, loginUserId);
+
     if(CollectionUtils.isNotEmpty(databases)) {
       return databases.stream().filter(database -> {
         if (database.startsWith(personalDatabasePrefix + "_")) {
-          if (database.endsWith(loginUserId)) {
+          if (database.equalsIgnoreCase(personalDatabase)) {
             return true;
           } else {
             return false;
