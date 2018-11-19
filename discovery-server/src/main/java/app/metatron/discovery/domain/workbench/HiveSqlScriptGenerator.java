@@ -38,9 +38,9 @@ public class HiveSqlScriptGenerator {
 
     String columns = headers.stream().map(header -> {
       if(header.contains(".")) {
-        return header.substring(header.indexOf(".") + 1, header.length());
+        return String.format("`%s`", header.substring(header.indexOf(".") + 1, header.length()));
       } else {
-        return header;
+        return String.format("`%s`", header);
       }
     }).collect(Collectors.joining(" STRING, ", "", " STRING"));
     script.append(String.format("CREATE TABLE %s.%s (%s) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\\001' LINES TERMINATED BY '\\n';",
