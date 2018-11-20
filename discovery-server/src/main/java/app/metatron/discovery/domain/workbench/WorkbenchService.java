@@ -18,9 +18,11 @@ import app.metatron.discovery.common.exception.BadRequestException;
 import app.metatron.discovery.common.exception.ResourceNotFoundException;
 import app.metatron.discovery.domain.datasource.connection.DataConnection;
 import app.metatron.discovery.domain.datasource.connection.DataConnectionRepository;
+import app.metatron.discovery.domain.datasource.connection.jdbc.JdbcConnectionService;
 import app.metatron.discovery.domain.datasource.connection.jdbc.JdbcDataConnection;
 import app.metatron.discovery.domain.user.CachedUserService;
 import app.metatron.discovery.domain.user.User;
+import app.metatron.discovery.domain.workbench.hive.WorkbenchHiveService;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSource;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSourceUtils;
 import app.metatron.discovery.util.AuthUtils;
@@ -40,6 +42,15 @@ public class WorkbenchService {
 
   @Autowired
   CachedUserService cachedUserService;
+
+  @Autowired
+  WorkbenchRepository workbenchRepository;
+
+  @Autowired
+  JdbcConnectionService jdbcConnectionService;
+
+  @Autowired
+  WorkbenchHiveService workbenchHiveService;
 
   public WorkbenchDataSource createSingleDataSource(String dataConnectionId, String webSocketId, String username, String password) {
     WorkbenchDataSource dataSource = WorkbenchDataSourceUtils.findDataSourceInfo(webSocketId);
@@ -73,20 +84,20 @@ public class WorkbenchService {
 
   public WorkbenchDataSource createSingleDataSource(JdbcDataConnection jdbcDataConnection, String webSocketId, String username, String password) {
     WorkbenchDataSource dataSource = WorkbenchDataSourceUtils.findDataSourceInfo(webSocketId);
-    if(dataSource == null){
+    if (dataSource == null) {
       String connectionUsername;
       String connectionPassword;
 
       DataConnection.AuthenticationType authenticationType = jdbcDataConnection.getAuthenticationType();
-      if(authenticationType == null){
+      if (authenticationType == null) {
         authenticationType = DataConnection.AuthenticationType.MANUAL;
       }
 
-      switch (authenticationType){
+      switch (authenticationType) {
         case USERINFO:
           connectionUsername = AuthUtils.getAuthUserName();
           User user = cachedUserService.findUser(connectionUsername);
-          if(user == null){
+          if (user == null) {
             throw new ResourceNotFoundException("User(" + connectionUsername + ")");
           }
           connectionPassword = cachedUserService.findUser(connectionUsername).getPassword();
@@ -96,10 +107,10 @@ public class WorkbenchService {
           connectionPassword = jdbcDataConnection.getPassword();
           break;
         default:
-          if(StringUtils.isEmpty(username)){
+          if (StringUtils.isEmpty(username)) {
             throw new BadRequestException("Empty username");
           }
-          if(StringUtils.isEmpty(password)){
+          if (StringUtils.isEmpty(password)) {
             throw new BadRequestException("Empty password");
           }
           connectionUsername = username;
@@ -108,7 +119,7 @@ public class WorkbenchService {
       }
 
       dataSource = WorkbenchDataSourceUtils.createDataSourceInfo(jdbcDataConnection, webSocketId, connectionUsername,
-              connectionPassword, true);
+          connectionPassword, true);
     }
     return dataSource;
   }

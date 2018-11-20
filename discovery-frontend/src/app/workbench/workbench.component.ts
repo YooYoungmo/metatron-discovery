@@ -345,6 +345,8 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   public saveAsLayer: boolean = false;
   public supportSaveAsHiveTable: boolean = false;
 
+  public importFile: boolean = false;
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    | Constructor
    |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -2608,6 +2610,11 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
       });
 
   } // function - createDatasource
+
+  public importFileSucceed() {
+    console.log('importFileSucceed..');
+    this.detailWorkbenchDatabase.getDatabase();
+  }
 
   /**
    * 데이터 소스 생성 후 처리
