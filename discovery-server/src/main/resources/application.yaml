@@ -96,11 +96,7 @@ polaris:
       PRESTO: ["LIVE"]
       PHOENIX: ["LIVE"]
   workbench:
-    query:
-      result:
-        store:
-          hdfs:
-            basepath: /tmp/metatron
+    tempDataTableHdfsPath: /tmp/metatron
   engine:
     api:
       query:

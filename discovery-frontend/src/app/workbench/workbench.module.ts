@@ -32,6 +32,9 @@ import { CodemirrorComponent } from '../workbench/component/editor-workbench/cod
 import { MetadataService } from '../meta-data-management/metadata/service/metadata.service';
 import { CanDeactivateGuard } from '../common/gaurd/can.deactivate.guard';
 import {SaveAsHiveTableComponent} from "./component/save-as-hive-table/save-as-hive-table.component";
+import {ImportFileComponent} from "./component/import-file/import-file.component";
+import {FileModule} from "../common/file.module";
+import {DndModule} from "ng2-dnd";
 
 // 라우트
 const workbenchRoutes: Routes = [
@@ -48,13 +51,15 @@ const workbenchRoutes: Routes = [
     SplitPaneModule,
     DataStorageModule,
     PageShareModule,
+    FileModule,
     RouterModule.forChild(workbenchRoutes),
   ],
   // 컴포넌트
   declarations: [
     WorkbenchComponent,
     CodemirrorComponent,
-    SaveAsHiveTableComponent
+    SaveAsHiveTableComponent,
+    ImportFileComponent
   ],
   // 서비스
   providers: [
