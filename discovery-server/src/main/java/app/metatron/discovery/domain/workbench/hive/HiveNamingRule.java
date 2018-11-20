@@ -1,4 +1,4 @@
-package app.metatron.discovery.domain.workbench;
+package app.metatron.discovery.domain.workbench.hive;
 
 public class HiveNamingRule {
   public static String replaceNotAllowedCharacters(String str) {

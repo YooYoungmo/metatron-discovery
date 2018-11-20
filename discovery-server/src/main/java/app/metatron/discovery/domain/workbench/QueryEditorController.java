@@ -28,11 +28,11 @@ import app.metatron.discovery.domain.datasource.connection.jdbc.JdbcConnectionSe
 import app.metatron.discovery.domain.datasource.connection.jdbc.JdbcDataConnection;
 import app.metatron.discovery.domain.datasource.ingestion.jdbc.SelectQueryBuilder;
 import app.metatron.discovery.domain.workbench.dto.SavingTable;
+import app.metatron.discovery.domain.workbench.hive.WorkbenchHiveService;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSource;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSourceUtils;
 import app.metatron.discovery.util.HibernateUtils;
 import app.metatron.discovery.util.HttpUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import org.supercsv.prefs.CsvPreference;
@@ -50,7 +49,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RepositoryRestController
 public class QueryEditorController {
@@ -82,10 +84,7 @@ public class QueryEditorController {
   EntityManager entityManager;
 
   @Autowired
-  QueryResultRepository queryResultRepository;
-
-  @Autowired
-  HiveSqlScriptGenerator hiveSqlScriptGenerator;
+  WorkbenchHiveService workbenchHiveService;
 
   @RequestMapping(path = "/queryeditors/{id}/query/run", method = RequestMethod.POST)
   @ResponseBody
@@ -152,7 +151,8 @@ public class QueryEditorController {
       if(requestBody.getQueryIndex() == 0) {
         // Query Editor 에서 쿼리가 여러개인 경우 최초 쿼리일 경우
         try {
-          queryResultRepository.delete(jdbcDataConnection, requestBody.getLoginUserId(), queryEditor.getId());
+          String additionalPath = queryEditor.getId();
+          workbenchHiveService.deleteHdfsDirectory((HiveConnection)jdbcDataConnection, requestBody.getLoginUserId(), additionalPath);
         } catch (Exception e) {
           LOGGER.error("Failed delete query result", e);
         }
@@ -485,24 +485,8 @@ public class QueryEditorController {
       throw new MetatronException(GlobalErrorCodes.BAD_REQUEST_CODE, "Only Hive is allowed.");
     }
 
-    WorkbenchDataSource dataSourceInfo = WorkbenchDataSourceUtils.findDataSourceInfo(savingTable.getWebSocketId());
-    SingleConnectionDataSource secondaryDataSource = dataSourceInfo.getSecondarySingleConnectionDataSource();
-
-    savingTable.setQueryEditorId(id);
-    String saveAsTableScript = hiveSqlScriptGenerator.generateSaveAsTable((JdbcDataConnection)dataConnection, savingTable);
-
-    List<String> queryList = Arrays.asList(saveAsTableScript.split(";"));
-    for (String query : queryList) {
-      try {
-        jdbcConnectionService.ddlQuery((JdbcDataConnection)dataConnection, secondaryDataSource, query);
-      } catch(Exception e) {
-        LOGGER.error("Failed save as hive table", e);
-        if(e.getMessage().indexOf("AlreadyExistsException") > -1) {
-          throw new WorkbenchException(WorkbenchErrorCodes.TABLE_ALREADY_EXISTS, "Table already exists.");
-        }
-        throw new MetatronException(GlobalErrorCodes.DEFAULT_GLOBAL_ERROR_CODE, "Failed save as hive table.");
-      }
-    }
+    String additionalPath = queryEditor.getId();
+    workbenchHiveService.saveAsHiveTableFromHdfsDataTable((HiveConnection)dataConnection, savingTable, additionalPath);
 
     return ResponseEntity.noContent().build();
   }

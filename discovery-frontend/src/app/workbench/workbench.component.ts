@@ -333,6 +333,8 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   public supportSaveAsHive: boolean = false;
   public queryResultStored: boolean = false;
 
+  public importFile: boolean = false;
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    | Constructor
    |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -2565,6 +2567,11 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
     const currentTab: ResultTab = this._getResultTab(resultTabId);
     currentTab.result.resultStored = false;
 
+    this.detailWorkbenchDatabase.getDatabase();
+  }
+
+  public importFileSucceed() {
+    console.log('importFileSucceed..');
     this.detailWorkbenchDatabase.getDatabase();
   }
 

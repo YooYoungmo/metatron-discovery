@@ -12,7 +12,7 @@ INSERT INTO book (type,id, created_by, created_time, modified_by, modified_time,
 ('workbench','workbench-02','admin',NOW(),'admin',NOW(),1.0,'',FALSE,'','TEST-Workbench-02','','ws-00'),
 ('workbench','workbench-03','polaris',NOW(),'polaris',NOW(),1.0,'',FALSE,'','TEST-Workbench-03','','ws-02'),
 ('workbench','workbench-04','polaris',NOW(),'polaris',NOW(),1.0,'',FALSE,'','TEST-Workbench-04','','ws-02'),
-('workbench','workbench-05','polaris',NOW(),'polaris',NOW(),1.0,'',FALSE,'','TEST-Workbench-04','','ws-02'),
+('workbench','workbench-05','polaris',NOW(),'polaris',NOW(),1.0,'',FALSE,'','TEST-Workbench-05','','ws-02'),
 ('workbook','workbook-01','polaris',NOW(),'polaris',NOW(),1.0,'',FALSE,'','TEST-Workbook-01','','ws-00'),
 ('workbook','workbook-02','polaris',NOW(),'polaris',NOW(),1.0,'',FALSE,'','TEST-Workbook-02','','ws-02');
 
