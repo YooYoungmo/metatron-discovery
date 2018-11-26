@@ -34,6 +34,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -195,12 +196,14 @@ public class WorkbenchHiveService {
     } catch (IOException e) {
       e.printStackTrace();
     }
+
+    final DataFormatter formatter = new DataFormatter();
     ExcelSheet<Map<Integer, String>, Map<String, Object>> excelSheet = excelTemplate.getSheet(sheetName, firstRow -> {
       Map<Integer, String> headers = Maps.newTreeMap();
       for (Cell cell : firstRow) {
         int columnIndex = cell.getColumnIndex();
         if(firstRowHeadColumnUsed) {
-          headers.put(columnIndex, StringUtils.defaultString(cell.getStringCellValue(), "col_" + (columnIndex + 1)));
+          headers.put(columnIndex, StringUtils.defaultString(formatter.formatCellValue(cell), "col_" + (columnIndex + 1)));
         } else {
           headers.put(columnIndex,  "col_" + (columnIndex + 1));
         }
@@ -211,7 +214,7 @@ public class WorkbenchHiveService {
       for (Cell cell : row) {
         int columnIndex = cell.getColumnIndex();
         if (headers.containsKey(columnIndex)) {
-          rowMap.put(headers.get(columnIndex), cell.getStringCellValue());
+          rowMap.put(headers.get(columnIndex), formatter.formatCellValue(cell));
         }
       }
       return rowMap;

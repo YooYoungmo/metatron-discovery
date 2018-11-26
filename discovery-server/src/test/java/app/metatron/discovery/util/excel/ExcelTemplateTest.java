@@ -3,6 +3,7 @@ package app.metatron.discovery.util.excel;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.junit.Test;
 
@@ -25,6 +26,7 @@ public class ExcelTemplateTest {
     final boolean firstHeaderRow = true;
 
     // when
+    final DataFormatter formatter = new DataFormatter();
     ExcelSheet<Map<Integer, String>, Map<String, String>> excelSheet = excelTemplate.getSheet(sheetName, firstRow -> {
       Map<Integer, String> headers = Maps.newTreeMap();
       for (Cell cell : firstRow) {
@@ -41,7 +43,7 @@ public class ExcelTemplateTest {
       for (Cell cell : row) {
         int columnIndex = cell.getColumnIndex();
         if (headers.containsKey(columnIndex)) {
-          rowMap.put(headers.get(columnIndex), cell.getStringCellValue());
+          rowMap.put(headers.get(columnIndex), formatter.formatCellValue(cell));
         }
       }
       return rowMap;
@@ -68,6 +70,7 @@ public class ExcelTemplateTest {
     final boolean firstHeaderRow = false;
 
     // when
+    final DataFormatter formatter = new DataFormatter();
     ExcelSheet<Map<Integer, String>, Map<String, String>> excelSheet = excelTemplate.getSheet(sheetName, firstRow -> {
       Map<Integer, String> headers = Maps.newTreeMap();
       for (Cell cell : firstRow) {
@@ -84,7 +87,7 @@ public class ExcelTemplateTest {
       for (Cell cell : row) {
         int columnIndex = cell.getColumnIndex();
         if (headers.containsKey(columnIndex)) {
-          rowMap.put(headers.get(columnIndex), cell.getStringCellValue());
+          rowMap.put(headers.get(columnIndex), formatter.formatCellValue(cell));
         }
       }
       return rowMap;
@@ -100,5 +103,51 @@ public class ExcelTemplateTest {
     assertThat(excelSheet.getRows()).extracting("col_3").contains("amount", "20","300","400","550","129","212","412","412","2111");
     assertThat(excelSheet.getRows()).extracting("col_4").contains("product_id", "1","1","2","2","3","3","4","4","5");
     assertThat(excelSheet.getRows()).extracting("col_5").contains("sale_count", "1","2","3","4","1","2","3","4","5");
+  }
+
+  @Test
+  public void getSheetRows_when_xls_file() throws IOException {
+    // given
+    final String filePath = getClass().getClassLoader().getResource("sales-product-97-2004.xls").getPath();
+    ExcelTemplate excelTemplate = new ExcelTemplate(new File(filePath));
+    final String sheetName = "sales";
+    final boolean firstHeaderRow = false;
+
+    // when
+    final DataFormatter formatter = new DataFormatter();
+    ExcelSheet<Map<Integer, String>, Map<String, String>> excelSheet = excelTemplate.getSheet(sheetName, firstRow -> {
+      Map<Integer, String> headers = Maps.newTreeMap();
+      for (Cell cell : firstRow) {
+        int columnIndex = cell.getColumnIndex();
+        if(firstHeaderRow) {
+          headers.put(columnIndex, StringUtils.defaultString(cell.getStringCellValue(), "col_" + (columnIndex + 1)));
+        } else {
+          headers.put(columnIndex,  "col_" + (columnIndex + 1));
+        }
+      }
+      return headers;
+    }, (headers, row) -> {
+      Map<String, String> rowMap = Maps.newTreeMap();
+      for (Cell cell : row) {
+        int columnIndex = cell.getColumnIndex();
+        if (headers.containsKey(columnIndex)) {
+          rowMap.put(headers.get(columnIndex), formatter.formatCellValue(cell));
+        }
+      }
+      return rowMap;
+    }, false);
+
+    // then
+    assertThat(excelSheet.getHeaders()).hasSize(5);
+    assertThat(excelSheet.getHeaders()).containsValues("col_1", "col_2", "col_3", "col_4", "col_5");
+
+    assertThat(excelSheet.getRows()).hasSize(10);
+    assertThat(excelSheet.getRows()).extracting("col_1").contains("time", "20/04/2017","21/04/2017","22/04/2017","23/04/2017","24/04/2017","25/04/2017","26/04/2017","27/04/2017","28/04/2017");
+    assertThat(excelSheet.getRows()).extracting("col_2").contains("order_id", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+    assertThat(excelSheet.getRows()).extracting("col_3").contains("amount", "20","300","400","550","129","212","412","412","2111");
+    assertThat(excelSheet.getRows()).extracting("col_4").contains("product_id", "1","1","2","2","3","3","4","4","5");
+    assertThat(excelSheet.getRows()).extracting("col_5").contains("sale_count", "1","2","3","4","1","2","3","4","5");
+
+
   }
 }
