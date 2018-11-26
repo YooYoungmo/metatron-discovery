@@ -95,8 +95,6 @@ polaris:
       HIVE: ["ENGINE", "LIVE"]
       PRESTO: ["LIVE"]
       PHOENIX: ["LIVE"]
-  workbench:
-    tempDataTableHdfsPath: /tmp/metatron
   engine:
     api:
       query:

@@ -224,7 +224,7 @@ export class ImportFileComponent extends AbstractPopupComponent implements OnIni
       const params = {
         tableName: this.importingTableName.trim(),
         firstRowHeadColumnUsed: !this.createHeadColumnFl,
-        uploadedFilePath: this.datasourceFile.filepath,
+        uploadedFile: this.datasourceFile.filepath,
         loginUserId: CommonUtil.getLoginUserId(),
         webSocketId: this.webSocketId
       };
