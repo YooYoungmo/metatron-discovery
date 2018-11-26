@@ -23,12 +23,17 @@ import app.metatron.discovery.domain.workbench.WorkbenchErrorCodes;
 import app.metatron.discovery.domain.workbench.WorkbenchException;
 import app.metatron.discovery.domain.workbench.WorkbenchProperties;
 import app.metatron.discovery.domain.workbench.dto.ImportCsvFile;
+import app.metatron.discovery.domain.workbench.dto.ImportExcelFile;
 import app.metatron.discovery.domain.workbench.dto.ImportFile;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSource;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSourceUtils;
 import app.metatron.discovery.util.csv.CsvTemplate;
+import app.metatron.discovery.util.excel.ExcelSheet;
+import app.metatron.discovery.util.excel.ExcelTemplate;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.Path;
+import org.apache.poi.ss.usermodel.Cell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +41,7 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -129,7 +135,11 @@ public class WorkbenchHiveService {
   }
 
   private DataTable convertUploadFileToDataTable(ImportFile importFile) {
-    final String filePath = String.format("%s/%s", workbenchProperties.getTempCSVPath(), importFile.getUploadedFile());
+    // TODO 경로 하나로 통일
+    String filePath = importFile.getUploadedFile();
+    if(importFile.getUploadedFile().startsWith("/") == false) {
+      filePath = String.format("%s/%s", workbenchProperties.getTempCSVPath(), importFile.getUploadedFile());
+    }
 
     if(Files.notExists((Paths.get(filePath)))) {
       throw new BadRequestException(String.format("File not found : %s", filePath));
@@ -139,6 +149,8 @@ public class WorkbenchHiveService {
     if(importFile instanceof ImportCsvFile){
       return convertCsvFileToDataTable(uploadedFile, importFile.getFirstRowHeadColumnUsed(),
           ((ImportCsvFile)importFile).getDelimiter(), ((ImportCsvFile)importFile).getLineSep());
+    } else if(importFile instanceof ImportExcelFile) {
+      return convertExcelFileToDataTable(uploadedFile, ((ImportExcelFile)importFile).getSheetName(), importFile.getFirstRowHeadColumnUsed());
     } else {
       throw new BadRequestException("Not supported file type");
     }
@@ -174,5 +186,37 @@ public class WorkbenchHiveService {
 
     List<String> fields = headers.values().stream().collect(Collectors.toList());
     return new DataTable(fields, records);
+  }
+
+  private DataTable convertExcelFileToDataTable(File uploadedFile, String sheetName, Boolean firstRowHeadColumnUsed) {
+    ExcelTemplate excelTemplate = null;
+    try {
+      excelTemplate = new ExcelTemplate(uploadedFile);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    ExcelSheet<Map<Integer, String>, Map<String, Object>> excelSheet = excelTemplate.getSheet(sheetName, firstRow -> {
+      Map<Integer, String> headers = Maps.newTreeMap();
+      for (Cell cell : firstRow) {
+        int columnIndex = cell.getColumnIndex();
+        if(firstRowHeadColumnUsed) {
+          headers.put(columnIndex, StringUtils.defaultString(cell.getStringCellValue(), "col_" + (columnIndex + 1)));
+        } else {
+          headers.put(columnIndex,  "col_" + (columnIndex + 1));
+        }
+      }
+      return headers;
+    }, (headers, row) -> {
+      Map<String, Object> rowMap = Maps.newTreeMap();
+      for (Cell cell : row) {
+        int columnIndex = cell.getColumnIndex();
+        if (headers.containsKey(columnIndex)) {
+          rowMap.put(headers.get(columnIndex), cell.getStringCellValue());
+        }
+      }
+      return rowMap;
+    }, firstRowHeadColumnUsed);
+    List<String> fields = excelSheet.getHeaders().values().stream().collect(Collectors.toList());
+    return new DataTable(fields, excelSheet.getRows());
   }
 }

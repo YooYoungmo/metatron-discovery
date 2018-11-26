@@ -20,7 +20,6 @@ import org.joda.time.DateTime;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by kyungtaak on 2016. 6. 16..
@@ -56,10 +55,6 @@ public class QueryResult implements Serializable {
   String queryEditorId;
 
   String csvFilePath;
-
-  Boolean resultStored;
-
-  String storedQueryResultId;
 
   public enum QueryResultStatus {
     SUCCESS, FAIL, CANCELLED, RUNNING, ALL
@@ -183,22 +178,6 @@ public class QueryResult implements Serializable {
 
   public void setDefaultNumRows(Long defaultNumRows) {
     this.defaultNumRows = defaultNumRows;
-  }
-
-  public Boolean getResultStored() {
-    return resultStored;
-  }
-
-  public void setResultStored(Boolean resultStored) {
-    this.resultStored = resultStored;
-  }
-
-  public String getStoredQueryResultId() {
-    return storedQueryResultId;
-  }
-
-  public void setStoredQueryResultId(String storedQueryResultId) {
-    this.storedQueryResultId = storedQueryResultId;
   }
 
   @Override

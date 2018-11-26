@@ -61,13 +61,6 @@ export class CreateConnectionComponent extends AbstractPopupComponent implements
   public username: string = '';
   // password
   public password: string = '';
-
-  public enableSaveAsHiveTable: boolean = false;
-  public hiveAdminName: string = '';
-  public hiveAdminPassword: string = '';
-  public hivePersonalDatabasePrefix: string = '';
-  public hdfsConfigPath: string = '';
-
   // database
   public database: string = '';
   // sid
@@ -94,10 +87,6 @@ export class CreateConnectionComponent extends AbstractPopupComponent implements
   public isShowPasswordRequired: boolean;
   // name input validation
   public isShowConnectionNameRequired: boolean;
-  public isShowHiveAdminNameRequired: boolean;
-  public isShowHiveAdminPasswordRequired: boolean;
-  public isShowHivePersonalDatabasePrefixRequired: boolean;
-  public isShowHdfsConfigPathRequired: boolean;
   // name validation message
   public nameErrorMsg: string;
   // advanced settings flag
@@ -137,7 +126,6 @@ export class CreateConnectionComponent extends AbstractPopupComponent implements
    * Done click event
    */
   public done(): void {
-    // TODO hive admin account validation(접속 및 입력 여부..)
     // clicked done button flag
     this.isClickedDone = true;
     // if enable done button, create connection
@@ -325,30 +313,6 @@ export class CreateConnectionComponent extends AbstractPopupComponent implements
       this.isShowPasswordRequired = true;
       result = false;
     }
-
-    if(this.enableSaveAsHiveTable === true) {
-      if(StringUtil.isEmpty(this.hiveAdminName)) {
-        this.isShowHiveAdminNameRequired = true;
-        result = false;
-      }
-      if(StringUtil.isEmpty(this.hiveAdminPassword)) {
-        this.isShowHiveAdminPasswordRequired = true;
-        result = false;
-      }
-      if(StringUtil.isEmpty(this.hiveAdminName)) {
-        this.isShowHiveAdminNameRequired = true;
-        result = false;
-      }
-      if(StringUtil.isEmpty(this.hivePersonalDatabasePrefix)) {
-        this.isShowHivePersonalDatabasePrefixRequired = true;
-        result = false;
-      }
-      if(StringUtil.isEmpty(this.hdfsConfigPath)) {
-        this.isShowHdfsConfigPathRequired = true;
-        result = false;
-      }
-    }
-
     return result;
   }
 
@@ -426,14 +390,6 @@ export class CreateConnectionComponent extends AbstractPopupComponent implements
     this.isShowUrlRequired = null;
     this.isShowUsernameRequired = null;
     this.isShowPasswordRequired = null;
-    this.isShowHiveAdminNameRequired = null;
-    this.isShowHiveAdminPasswordRequired = null;
-    this.isShowHivePersonalDatabasePrefixRequired = null;
-    this.isShowHdfsConfigPathRequired = null;
-  }
-
-  public onChangeEnableSaveAsHiveTable(): void {
-    this.enableSaveAsHiveTable = !this.enableSaveAsHiveTable;
   }
 
   /**
@@ -596,14 +552,6 @@ export class CreateConnectionComponent extends AbstractPopupComponent implements
       params['password'] = this.password.trim();
       params['username'] = this.username.trim();
     }
-
-    if(this.selectedDbType.value === 'HIVE' && this.enableSaveAsHiveTable) {
-      params['secondaryUsername'] = this.hiveAdminName.trim();
-      params['secondaryPassword'] = this.hiveAdminPassword.trim();
-      params['hdfsConfigurationPath'] = this.hdfsConfigPath.trim();
-      params['personalDatabasePrefix'] = this.hivePersonalDatabasePrefix.trim();
-    }
-
     // if disable URL
     if (!this.isEnableUrl) {
       params['hostname'] = this.hostname.trim();
