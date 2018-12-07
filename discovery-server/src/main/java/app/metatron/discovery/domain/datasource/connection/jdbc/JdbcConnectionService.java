@@ -186,7 +186,8 @@ public class JdbcConnectionService {
         || connection instanceof PostgresqlConnection
         || connection instanceof PhoenixConnection
         || connection instanceof MssqlConnection
-        || connection instanceof HiveConnection) {
+        || connection instanceof HiveConnection
+        || connection instanceof DruidConnection) {
       resultMap = searchSchemas(connection, dataSource, databaseName, pageable);
     } else {
       resultMap = searchDatabases(connection, dataSource, databaseName, pageable);
@@ -462,7 +463,8 @@ public class JdbcConnectionService {
     Connection conn = null;
     ResultSet resultSet = null;
 
-    if (connection instanceof MssqlConnection) {
+    if (connection instanceof MssqlConnection ||
+        connection instanceof DruidConnection) {
       catalog = null;
     } else if (connection instanceof PrestoConnection) {
       catalog = ((PrestoConnection) connection).getCatalog();
@@ -1660,7 +1662,8 @@ public class JdbcConnectionService {
   public Map<String, Object> searchSchemas(JdbcDataConnection connection, DataSource dataSource,
                                            String schemaNamePattern, Pageable pageable) {
     if (connection instanceof PrestoConnection
-        || connection instanceof HiveConnection) {
+        || connection instanceof HiveConnection
+        || connection instanceof DruidConnection) {
       return searchSchemasWithQuery(connection, dataSource, schemaNamePattern, pageable);
     } else if (connection instanceof OracleConnection
         || connection instanceof PostgresqlConnection
@@ -1783,7 +1786,8 @@ public class JdbcConnectionService {
                                              String databaseNamePattern, Pageable pageable) {
     if (
         connection instanceof MySQLConnection ||
-            connection instanceof MssqlConnection) {
+            connection instanceof MssqlConnection ||
+            connection instanceof DruidConnection) {
       return searchDatabasesWithQueryPageable(connection, dataSource, databaseNamePattern, pageable);
     } else if (connection instanceof PostgresqlConnection) {
       return searchDatabasesWithQueryPageable(connection, dataSource, databaseNamePattern, pageable);
@@ -1989,8 +1993,9 @@ public class JdbcConnectionService {
     }
 
     driverManagerDataSource = new DriverManagerDataSource(connUrl, properties);
-    driverManagerDataSource.setDriverClassName(connection.getDriverClass());
-
+    if (connection.getDriverClass() != null) {
+      driverManagerDataSource.setDriverClassName(connection.getDriverClass());
+    }
     LOGGER.debug("Created datasource : {}", connUrl);
 
     return driverManagerDataSource;
