@@ -875,12 +875,15 @@ public class TeddyExecutor {
       case "HIVE": jdbcDataConnection = new HiveConnection(); break;
       case "PRESTO": jdbcDataConnection = new PrestoConnection(); break;
       case "TIBERO": jdbcDataConnection = new TiberoConnection(); break;
+      case "DRUID": jdbcDataConnection = new DruidConnection(); break;
     }
     jdbcDataConnection.setUsername(username);
     jdbcDataConnection.setPassword(password);
 
     try {
-      Class.forName(jdbcDataConnection.getDriverClass());
+      if (jdbcDataConnection.getDriverClass() != null) {
+        Class.forName(jdbcDataConnection.getDriverClass());
+      }
       Connection conn = DriverManager.getConnection(connectUri, jdbcDataConnection.getUsername(), jdbcDataConnection.getPassword());
       return conn.createStatement();
     } catch (ClassNotFoundException e) {
