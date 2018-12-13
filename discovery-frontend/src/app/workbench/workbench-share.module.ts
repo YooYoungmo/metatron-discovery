@@ -30,6 +30,7 @@ import {DetailWorkbenchTableInfoSchemaComponent} from './component/detail-workbe
 import {WorkbenchLoginComponent} from './component/detail-workbench/workbench-login/workbench-login.component';
 import {DetailWorkbenchTabComponent} from './component/detail-workbench/detail-workbench-tab/detail-workbench-tab.component';
 import {DetailWorkbenchSchemaBrowserComponent} from './component/detail-workbench/detail-workbench-schema-browser/detail-workbench-schema-browser.component';
+import {RenameTableComponent} from "./component/detail-workbench/detail-workbench-table/rename-table/rename-table.component";
 
 @NgModule({
   // 모듈
@@ -51,7 +52,8 @@ import {DetailWorkbenchSchemaBrowserComponent} from './component/detail-workbenc
     DetailWorkbenchTableInfoDescComponent,
     WorkbenchLoginComponent,
     DetailWorkbenchTabComponent,
-    DetailWorkbenchSchemaBrowserComponent
+    DetailWorkbenchSchemaBrowserComponent,
+    RenameTableComponent
   ],
   // 서비스
   providers: [

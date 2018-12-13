@@ -33,6 +33,9 @@ import {StringUtil} from '@common/util/string.util';
 import {AbstractWorkbenchComponent} from '../../abstract-workbench.component';
 import {WorkbenchService} from '../../../service/workbench.service';
 import {ImplementorType} from '@domain/dataconnection/dataconnection';
+import {DeleteModalComponent} from "../../../../common/component/modal/delete/delete.component";
+import {Modal} from "../../../../common/domain/modal";
+import {Alert} from "../../../../common/util/alert.util";
 
 @Component({
   selector: 'detail-workbench-table',
@@ -43,6 +46,9 @@ export class DetailWorkbenchTableComponent extends AbstractWorkbenchComponent im
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   | Private Variables
   |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+
+  @ViewChild(DeleteModalComponent)
+  private deleteHiveTableModalComponent: DeleteModalComponent;
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   | Public Variables
@@ -114,6 +120,15 @@ export class DetailWorkbenchTableComponent extends AbstractWorkbenchComponent im
   // sort type (DEFAULT, ASC, DESC)
   public tableSortType: string = 'DEFAULT';
 
+  public isPersonalDatabase: boolean = false;
+
+  public showRenameTableModal: boolean = false;
+  public renameTable: string = '';
+
+  public webSocketId: string = '';
+  public dataConnectionId: string = '';
+  public database: string = '';
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   | Constructor
   |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -138,6 +153,15 @@ export class DetailWorkbenchTableComponent extends AbstractWorkbenchComponent im
   public ngOnChanges(changes: SimpleChanges) {
     const paramChanges: SimpleChange = changes.inputParams;
 
+    this.isPersonalDatabase = false;
+    if(this.inputParams && this.inputParams.dataconnection
+      && this.inputParams.dataconnection.database && this.inputParams.dataconnection.supportPersonalDatabase) {
+      const personalDatabasePrefix = this.inputParams.dataconnection.properties['metatron.personal.database.prefix'];
+      if(this.inputParams.dataconnection.database.startsWith(personalDatabasePrefix)) {
+        this.isPersonalDatabase = true;
+      }
+    }
+
     if (paramChanges) {
       // const prevVal = paramChanges.previousValue;
       // const currVal = paramChanges.currentValue;
@@ -152,6 +176,9 @@ export class DetailWorkbenchTableComponent extends AbstractWorkbenchComponent im
       // }
       if (this.inputParams) {
         this.page.page = 0;
+        this.webSocketId = this.inputParams.webSocketId;
+        this.dataConnectionId = this.inputParams.dataconnection.id;
+        this.database = this.inputParams.dataconnection.database;
         this.getTables();
       }
     }
@@ -206,7 +233,6 @@ export class DetailWorkbenchTableComponent extends AbstractWorkbenchComponent im
 
   // 데이터 베이스 리스트 가져오기
   public getTables() {
-
     // sort 초기화
     this.tableSortType = 'DEFAULT';
     // 테이블 갯수 초기화
@@ -457,6 +483,44 @@ export class DetailWorkbenchTableComponent extends AbstractWorkbenchComponent im
       totalPage = Math.ceil(this.pageResult.totalElements / this.localPageSize);
     }
     return totalPage;
+  }
+
+  public openModalDeleteTableInPersonalDatabase(item) {
+    const modal = new Modal();
+    modal.name = this.translateService.instant('msg.bench.ui.delete.table.title');
+    modal.description = this.translateService.instant('msg.bench.ui.delete.table.description', {value: item});
+    modal.data = {
+      webSocketId: this.webSocketId,
+      dataConnectionId: this.dataConnectionId,
+      database: this.database,
+      table: item
+    };
+
+    this.deleteHiveTableModalComponent.init(modal);
+  }
+
+  public openModalRenameTableInPersonalDatabase(item) {
+    this.renameTable = item;
+    this.showRenameTableModal = true;
+  }
+
+  public deleteTableInPersonalDatabase() {
+    const data = this.deleteHiveTableModalComponent.modal.data;
+    this.loadingShow();
+    this.dataconnectionService.deleteTable(data.dataConnectionId, data.database, data.table, data.webSocketId)
+      .then((response) => {
+        this.loadingHide();
+        Alert.success(this.translateService.instant('msg.comm.alert.delete.success'));
+        this.getTables();
+      }).catch((error) => {
+      this.loadingHide();
+      console.log(error);
+      Alert.error(this.translateService.instant('msg.comm.alert.delete.fail'));
+    });
+  }
+
+  public renameTableSucceed() {
+    this.getTables();
   }
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
