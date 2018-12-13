@@ -14,6 +14,8 @@
 
 package app.metatron.discovery.domain.datasource.connection;
 
+import app.metatron.discovery.TestJdbcUtils;
+import app.metatron.discovery.domain.workbench.util.WorkbenchDataSourceUtils;
 import com.google.common.collect.Maps;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,14 +24,25 @@ import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hive.jdbc.HiveDriver;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
+import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.util.Assert;
 
+import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,13 +64,14 @@ import app.metatron.discovery.domain.datasource.ingestion.jdbc.JdbcIngestionInfo
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.path.json.JsonPath.from;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.hamcrest.Matchers.hasSize;
 
 /**
  * Created by kyungtaak on 2016. 6. 16..
  */
 @TestExecutionListeners(value = OAuthTestExecutionListener.class, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
-  public class DataConnectionRestInegrationTest extends AbstractRestIntegrationTest {
+public class DataConnectionRestInegrationTest extends AbstractRestIntegrationTest {
 
   @Before
   public void setUp() {
@@ -69,14 +83,14 @@ import static org.hamcrest.Matchers.hasSize;
   public void available() {
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-    .when()
-      .get("/api/connections/available").
-    then()
-      .statusCode(HttpStatus.SC_OK)
-    .log().all();
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .when()
+        .get("/api/connections/available").
+        then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all();
     // @formatter:on
   }
 
@@ -96,19 +110,19 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response createResponse =
-    given()
-      .auth().oauth2(oauth_token)
-      .body(reqBody)
-      .contentType(ContentType.JSON)
-    .when()
-      .post("/api/connections");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/connections");
 
     String connId = from(createResponse.asString()).get("id");
 
     createResponse.then()
 //      .statusCode(HttpStatus.SC_CREATED)
 //      .body("id", any(String.class))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -127,19 +141,19 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response createResponse =
-    given()
-      .auth().oauth2(oauth_token)
-      .body(reqBody)
-      .contentType(ContentType.JSON)
-    .when()
-      .post("/api/connections");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/connections");
 
     String connId = from(createResponse.asString()).get("id");
 
     createResponse.then()
 //      .statusCode(HttpStatus.SC_CREATED)
 //      .body("id", any(String.class))
-    .log().all();
+        .log().all();
 
     Map<String, Object> createDatasourceReqMap = Maps.newHashMap();
     createDatasourceReqMap.put("name", "datasource-connection");
@@ -148,12 +162,12 @@ import static org.hamcrest.Matchers.hasSize;
     String dsReqBody = GlobalObjectMapper.writeValueAsString(createDatasourceReqMap);
     // @formatter:off
     createResponse =
-    given()
-      .auth().oauth2(oauth_token)
-      .body(dsReqBody)
-      .contentType(ContentType.JSON)
-    .when()
-      .post("/api/datasources");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(dsReqBody)
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/datasources");
 
     createResponse.then().log().all();
 
@@ -162,7 +176,7 @@ import static org.hamcrest.Matchers.hasSize;
     createResponse.then()
 //      .statusCode(HttpStatus.SC_CREATED)
 //      .body("id", any(String.class))
-    .log().all();
+        .log().all();
 
 
     // @formatter:off
@@ -196,14 +210,14 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response createResponse =
-    given()
-      .auth().oauth2(oauth_token)
-      .body(reqBody)
-      .contentType(ContentType.JSON)
-    .when()
-      .post("/api/connections");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/connections");
     createResponse.then()
-    .log().all();
+        .log().all();
 
     TestUtils.printTestTitle("2-1. Connection내 워크스페이스 전체 수정(Replace)");
 
@@ -213,58 +227,58 @@ import static org.hamcrest.Matchers.hasSize;
     // Put Workspace
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .contentType("text/uri-list")
-      .body("/api/workspaces/ws-00\n/api/workspaces/ws-02")
-      .log().all()
-    .when()
-      .put("/api/connections/{id}/workspaces", connId)
-    .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT)
-    .log().all();
+        .auth().oauth2(oauth_token)
+        .contentType("text/uri-list")
+        .body("/api/workspaces/ws-00\n/api/workspaces/ws-02")
+        .log().all()
+        .when()
+        .put("/api/connections/{id}/workspaces", connId)
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT)
+        .log().all();
     // @formatter:on
 
     TestUtils.printTestTitle("2-2. Connection 내 워크스페이스 연결 추가");
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .contentType("text/uri-list")
-      .body("/api/workspaces/ws-03")
-      .log().all()
-    .when()
-      .patch("/api/connections/{connId}/workspaces", connId)
-    .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT)
-    .log().all();
+        .auth().oauth2(oauth_token)
+        .contentType("text/uri-list")
+        .body("/api/workspaces/ws-03")
+        .log().all()
+        .when()
+        .patch("/api/connections/{connId}/workspaces", connId)
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT)
+        .log().all();
     // @formatter:on
 
     TestUtils.printTestTitle("2-2. Connection 내 워크스페이스 연결 삭제");
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .log().all()
-    .when()
-      .delete("/api/connections/{connId}/workspaces/{workspaceId}", connId,"ws-02")
-    .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT)
-    .log().all();
+        .auth().oauth2(oauth_token)
+        .log().all()
+        .when()
+        .delete("/api/connections/{connId}/workspaces/{workspaceId}", connId, "ws-02")
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT)
+        .log().all();
     // @formatter:on
 
     TestUtils.printTestTitle("3. Connection 내 워크스페이스 연결 조회");
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .contentType(ContentType.JSON)
-      .log().all()
-    .when()
-      .get("/api/connections/{connId}/workspaces", connId)
-    .then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .contentType(ContentType.JSON)
+        .log().all()
+        .when()
+        .get("/api/connections/{connId}/workspaces", connId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("_embedded.workspaces.name", hasItems(workspace1.getName(), workspace2.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
 
 
@@ -285,16 +299,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/check").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/check").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -314,17 +328,17 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-            .log().all()
-    .when()
-      .post("/api/connections/query/check").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .log().all()
+        .when()
+        .post("/api/connections/query/check").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -343,16 +357,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(request)
-            .when()
-            .post("/api/connections/query/check").
-            then()
-            .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/check").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-            .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -372,16 +386,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/databases").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/databases").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -401,16 +415,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/schemas").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/schemas").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -431,17 +445,17 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-      .log().all()
-    .when()
-      .post("/api/connections/query/tables").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .log().all()
+        .when()
+        .post("/api/connections/query/tables").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -461,32 +475,32 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response createResponse =
-    given()
-      .auth().oauth2(oauth_token)
-      .body(reqBody)
-      .contentType(ContentType.JSON)
-    .when()
-      .post("/api/connections");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/connections");
 
     createResponse.then()
 //      .statusCode(HttpStatus.SC_CREATED)
 //      .body("id", any(String.class))
-    .log().all();
+        .log().all();
     // @formatter:on
 
     String connId = from(createResponse.asString()).get("id");
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-    .when()
-      .get("/api/connections/{connId}/databases/test/tables", connId).
-    then()
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .when()
+        .get("/api/connections/{connId}/databases/test/tables", connId).
+        then()
 //      .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -506,32 +520,32 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response createResponse =
-    given()
-      .auth().oauth2(oauth_token)
-      .body(reqBody)
-      .contentType(ContentType.JSON)
-    .when()
-      .post("/api/connections");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/connections");
 
     createResponse.then()
 //      .statusCode(HttpStatus.SC_CREATED)
 //      .body("id", any(String.class))
-    .log().all();
+        .log().all();
     // @formatter:on
 
     String connId = from(createResponse.asString()).get("id");
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-    .when()
-      .get("/api/connections/{connId}/databases", connId).
-    then()
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .when()
+        .get("/api/connections/{connId}/databases", connId).
+        then()
 //      .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -551,32 +565,32 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response createResponse =
-    given()
-      .auth().oauth2(oauth_token)
-      .body(reqBody)
-      .contentType(ContentType.JSON)
-    .when()
-      .post("/api/connections");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/connections");
 
     createResponse.then()
 //      .statusCode(HttpStatus.SC_CREATED)
 //      .body("id", any(String.class))
-    .log().all();
+        .log().all();
     // @formatter:on
 
     String connId = from(createResponse.asString()).get("id");
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-    .when()
-      .get("/api/connections/{connId}/databases", connId).
-    then()
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .when()
+        .get("/api/connections/{connId}/databases", connId).
+        then()
 //      .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -596,32 +610,32 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response createResponse =
-    given()
-      .auth().oauth2(oauth_token)
-      .body(reqBody)
-      .contentType(ContentType.JSON)
-    .when()
-      .post("/api/connections");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/connections");
 
     createResponse.then()
 //      .statusCode(HttpStatus.SC_CREATED)
 //      .body("id", any(String.class))
-    .log().all();
+        .log().all();
     // @formatter:on
 
     String connId = from(createResponse.asString()).get("id");
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-    .when()
-      .post("/api/datasources/connections/{connId}/metatron", connId).
-    then()
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .when()
+        .post("/api/datasources/connections/{connId}/metatron", connId).
+        then()
 //      .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -644,17 +658,17 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-      .log().all()
-    .when()
-      .post("/api/connections/query/data").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .log().all()
+        .when()
+        .post("/api/connections/query/data").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -675,15 +689,15 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/tables").
-    then()
-      .statusCode(HttpStatus.SC_OK)
-    .log().all();
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/tables").
+        then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all();
     // @formatter:on
   }
 
@@ -704,16 +718,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/schemas").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/schemas").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -736,16 +750,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/data").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/data").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -768,16 +782,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/data").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/data").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -797,16 +811,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/schemas").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/schemas").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -826,16 +840,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/tables").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/tables").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -855,16 +869,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/check").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/check").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -884,16 +898,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/schemas").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/schemas").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -914,16 +928,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/tables").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/tables").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -946,16 +960,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/data").
-    then()
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/data").
+        then()
 //      .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -976,16 +990,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/check").
-    then()
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/check").
+        then()
 //      .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -1004,16 +1018,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/schemas").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/schemas").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -1034,16 +1048,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/tables").
-    then()
-      .statusCode(HttpStatus.SC_OK)
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/tables").
+        then()
+        .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
@@ -1065,36 +1079,36 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .body(request)
-    .when()
-      .post("/api/connections/query/data").
-    then()
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .when()
+        .post("/api/connections/query/data").
+        then()
 //      .statusCode(HttpStatus.SC_OK)
 //      .body("name", is(workspace1.getName()))
-    .log().all();
+        .log().all();
     // @formatter:on
   }
 
   @Test
   @OAuthRequest(username = "polaris", value = {"ROLE_SYSTEM_USER", "ROLE_PERM_SYSTEM_WRITE_DATASOURCE"})
   @Sql({"/sql/test_dataconnection.sql"})
-  public void getDetailConnection()  {
+  public void getDetailConnection() {
 
     String id = "mysql-connection";
 
     // @formatter:off
     given()
-      .auth().oauth2(oauth_token)
-      .contentType(ContentType.JSON)
-      .param("projection", "default")
-    .when()
-      .get("/api/connections/{id}", id)
-    .then()
-      .log().all()
-      .statusCode(HttpStatus.SC_OK);
+        .auth().oauth2(oauth_token)
+        .contentType(ContentType.JSON)
+        .param("projection", "default")
+        .when()
+        .get("/api/connections/{id}", id)
+        .then()
+        .log().all()
+        .statusCode(HttpStatus.SC_OK);
     // @formatter:on
   }
 
@@ -1105,21 +1119,21 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-      given()
-        .auth().oauth2(oauth_token)
-        .accept(ContentType.JSON)
-        .contentType(ContentType.JSON)
-        .param("projection", "forSimpleListView")
-        .param("size", "100")
-        .param("type", "jdbc")
-        .log().all()
-      .when()
-        .get("/api/connections")
-      .then()
-        .log().all()
-        .statusCode(HttpStatus.SC_OK)
-        .body("_embedded.connections", hasSize(18))
-        .extract().response();
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "forSimpleListView")
+            .param("size", "100")
+            .param("type", "jdbc")
+            .log().all()
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .body("_embedded.connections", hasSize(18))
+            .extract().response();
     // @formatter:on
   }
 
@@ -1130,27 +1144,26 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .when()
-                    .get("/api/connections")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
 
     // @formatter:on
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-            "name = " + connectionMap.get("name")
-            + ", implementor = " + connectionMap.get("implementor")
-            + ", createTime = " + connectionMap.get("createdTime")
-            + ", modifiedTime = " + connectionMap.get("modifiedTime")
+          "name = " + connectionMap.get("name")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
       );
     }
   }
@@ -1162,27 +1175,26 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("projection", "list")
-                    .when()
-                    .get("/api/connections")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "list")
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-                      "name = " + connectionMap.get("name")
-                      + ", implementor = " + connectionMap.get("implementor")
-                      + ", createTime = " + connectionMap.get("createdTime")
-                      + ", modifiedTime = " + connectionMap.get("modifiedTime")
+          "name = " + connectionMap.get("name")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
       );
     }
   }
@@ -1194,27 +1206,26 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("projection", "list")
-                    .when()
-                    .get("/api/connections")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "list")
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-                      "name = " + connectionMap.get("name")
-                      + ", implementor = " + connectionMap.get("implementor")
-                      + ", createTime = " + connectionMap.get("createdTime")
-                      + ", modifiedTime = " + connectionMap.get("modifiedTime")
+          "name = " + connectionMap.get("name")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
       );
     }
   }
@@ -1227,29 +1238,28 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("projection", "list")
-                    .param("authenticationType", authenticationType)
-                    .when()
-                    .get("/api/connections")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "list")
+            .param("authenticationType", authenticationType)
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-                      "name = " + connectionMap.get("name")
-                      + ", authenticationType = " + connectionMap.get("authenticationType")
-                      + ", implementor = " + connectionMap.get("implementor")
-                      + ", createTime = " + connectionMap.get("createdTime")
-                      + ", modifiedTime = " + connectionMap.get("modifiedTime")
+          "name = " + connectionMap.get("name")
+              + ", authenticationType = " + connectionMap.get("authenticationType")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
       );
       Assert.isTrue(connectionMap.get("authenticationType").equals(authenticationType));
     }
@@ -1263,28 +1273,27 @@ import static org.hamcrest.Matchers.hasSize;
     String implementor = "MYSQL";
     // @formatter:off
     Response resp =
-    given()
-      .auth().oauth2(oauth_token)
-      .accept(ContentType.JSON)
-      .contentType(ContentType.JSON)
-      .param("projection", "list")
-      .param("implementor", implementor)
-    .when()
-      .get("/api/connections")
-    .then()
-      .log().all()
-      .statusCode(HttpStatus.SC_OK)
-      .extract().response()
-    ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "list")
+            .param("implementor", implementor)
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-                      "ame = " + connectionMap.get("name")
-                      + ", implementor = " + connectionMap.get("implementor")
-                      + ", createTime = " + connectionMap.get("createdTime")
-                      + ", modifiedTime = " + connectionMap.get("modifiedTime")
+          "ame = " + connectionMap.get("name")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
       );
       Assert.isTrue(connectionMap.get("implementor").equals(implementor));
     }
@@ -1299,29 +1308,28 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("projection", "list")
-                    .param("name", namePattern)
-                    .when()
-                    .get("/api/connections")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "list")
+            .param("name", namePattern)
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
 
     // @formatter:on
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-                      "name = " + connectionMap.get("name")
-                      + ", implementor = " + connectionMap.get("implementor")
-                      + ", createTime = " + connectionMap.get("createdTime")
-                      + ", modifiedTime = " + connectionMap.get("modifiedTime")
+          "name = " + connectionMap.get("name")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
       );
       Assert.isTrue(StringUtils.containsIgnoreCase(connectionMap.get("name").toString(), namePattern));
     }
@@ -1334,29 +1342,28 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("projection", "list")
-                    .param("sort", "name,asc")
-                    .when()
-                    .get("/api/connections")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "list")
+            .param("sort", "name,asc")
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
 
     // @formatter:on
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-                      "name = " + connectionMap.get("name")
-                      + ", implementor = " + connectionMap.get("implementor")
-                      + ", createTime = " + connectionMap.get("createdTime")
-                      + ", modifiedTime = " + connectionMap.get("modifiedTime")
+          "name = " + connectionMap.get("name")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
       );
     }
 
@@ -1369,30 +1376,29 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("projection", "list")
-                    .param("sort", "modifiedTime,asc")
-                    .when()
-                    .get("/api/connections")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "list")
+            .param("sort", "modifiedTime,asc")
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
 
     // @formatter:on
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-                      "name = " + connectionMap.get("name")
-                      + ", authenticationType = " + connectionMap.get("authenticationType")
-                      + ", implementor = " + connectionMap.get("implementor")
-                      + ", createTime = " + connectionMap.get("createdTime")
-                      + ", modifiedTime = " + connectionMap.get("modifiedTime")
+          "name = " + connectionMap.get("name")
+              + ", authenticationType = " + connectionMap.get("authenticationType")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
       );
     }
 
@@ -1409,22 +1415,21 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("projection", "list")
-                    .param("sort", "modifiedTime,asc")
-                    .param("from", from)
-                    .param("to", to)
-                    .param("searchDateBy", searchDateBy)
-                    .when()
-                    .get("/api/connections")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "list")
+            .param("sort", "modifiedTime,asc")
+            .param("from", from)
+            .param("to", to)
+            .param("searchDateBy", searchDateBy)
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
 
     // @formatter:on
 
@@ -1432,12 +1437,12 @@ import static org.hamcrest.Matchers.hasSize;
     DateTime toDateTime = new DateTime(to);
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-                      "name = " + connectionMap.get("name")
-                      + ", implementor = " + connectionMap.get("implementor")
-                      + ", createTime = " + connectionMap.get("createdTime")
-                      + ", modifiedTime = " + connectionMap.get("modifiedTime")
+          "name = " + connectionMap.get("name")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
       );
       DateTime modifiedTime = new DateTime(connectionMap.get("modifiedTime").toString());
       Assert.isTrue(modifiedTime.isAfter(fromDateTime));
@@ -1459,24 +1464,23 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("projection", "list")
-                    .param("sort", "modifiedTime,asc")
-                    .param("from", from)
-                    .param("to", to)
-                    .param("searchDateBy", searchDateBy)
-                    .param("name", namePattern)
-                    .param("implementor", implementor)
-                    .when()
-                    .get("/api/connections")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("projection", "list")
+            .param("sort", "modifiedTime,asc")
+            .param("from", from)
+            .param("to", to)
+            .param("searchDateBy", searchDateBy)
+            .param("name", namePattern)
+            .param("implementor", implementor)
+            .when()
+            .get("/api/connections")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
 
     // @formatter:on
 
@@ -1484,20 +1488,20 @@ import static org.hamcrest.Matchers.hasSize;
     DateTime toDateTime = new DateTime(to);
 
     List<HashMap> connectionList = from(resp.asString()).getList("_embedded.connections", HashMap.class);
-    for(HashMap<String, Object> connectionMap : connectionList){
+    for (HashMap<String, Object> connectionMap : connectionList) {
       System.out.println(
-                      "name = " + connectionMap.get("name")
-                      + ", implementor = " + connectionMap.get("implementor")
-                      + ", createTime = " + connectionMap.get("createdTime")
-                      + ", modifiedTime = " + connectionMap.get("modifiedTime")
-                      + ", createdBy = " + connectionMap.get("createdBy")
+          "name = " + connectionMap.get("name")
+              + ", implementor = " + connectionMap.get("implementor")
+              + ", createTime = " + connectionMap.get("createdTime")
+              + ", modifiedTime = " + connectionMap.get("modifiedTime")
+              + ", createdBy = " + connectionMap.get("createdBy")
       );
       HashMap<String, String> createdByMap = (HashMap) connectionMap.get("createdBy");
       DateTime modifiedTime = new DateTime(connectionMap.get("modifiedTime").toString());
       Assert.isTrue(modifiedTime.isAfter(fromDateTime));
       Assert.isTrue(modifiedTime.isBefore(toDateTime));
       Assert.isTrue(StringUtils.containsIgnoreCase(connectionMap.get("name").toString(), namePattern)
-                  || StringUtils.containsIgnoreCase(createdByMap.get("username"), namePattern));
+          || StringUtils.containsIgnoreCase(createdByMap.get("username"), namePattern));
     }
 
   }
@@ -1517,19 +1521,19 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response createResponse =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .body(reqBody)
-                    .log().all()
-                    .contentType(ContentType.JSON)
-                    .when()
-                    .post("/api/connections");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .log().all()
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/connections");
 
     String connId = from(createResponse.asString()).get("id");
 
     createResponse.then()
-      .statusCode(HttpStatus.SC_CREATED)
-            .log().all();
+        .statusCode(HttpStatus.SC_CREATED)
+        .log().all();
     // @formatter:on
 
 
@@ -1546,22 +1550,21 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("tableName", tableNamePattern)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases/{database}/tables", connectionId, database )
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("tableName", tableNamePattern)
+            .when()
+            .get("/api/connections/{connectionId}/databases/{database}/tables", connectionId, database)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
 
     List<String> tableList = from(resp.asString()).getList("tables", String.class);
-    for(String tableName : tableList){
+    for (String tableName : tableList) {
       System.out.println("tableName = " + tableName);
       Assert.isTrue(StringUtils.containsIgnoreCase(tableName, tableNamePattern));
     }
@@ -1578,23 +1581,22 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("databaseName", databaseName)
-                    .param("size", 10)
-                    .param("page", 0)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases", connectionId)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("databaseName", databaseName)
+            .param("size", 10)
+            .param("page", 0)
+            .when()
+            .get("/api/connections/{connectionId}/databases", connectionId)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     List<String> databaseList = from(resp.asString()).getList("databases", String.class);
-    for(String database : databaseList){
+    for (String database : databaseList) {
       System.out.println(database);
       Assert.isTrue(StringUtils.containsIgnoreCase(database, databaseName));
     }
@@ -1611,23 +1613,22 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("tableName", tableNamePattern)
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("tableName", tableNamePattern)
 //                    .param("size", 10)
 //                    .param("page", 0)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases/{databaseName}/tables", connectionId, databaseName)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+            .when()
+            .get("/api/connections/{connectionId}/databases/{databaseName}/tables", connectionId, databaseName)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     List<String> tableList = from(resp.asString()).getList("tables", String.class);
-    for(String tableName : tableList){
+    for (String tableName : tableList) {
       System.out.println("tableName = " + tableName);
       Assert.isTrue(StringUtils.containsIgnoreCase(tableName, tableNamePattern));
     }
@@ -1643,23 +1644,22 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("databaseName", databaseName)
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("databaseName", databaseName)
 //                    .param("size", 10)
 //                    .param("page", 1)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases", connectionId)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+            .when()
+            .get("/api/connections/{connectionId}/databases", connectionId)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     List<String> databaseList = from(resp.asString()).getList("databases", String.class);
-    for(String database : databaseList){
+    for (String database : databaseList) {
       System.out.println(database);
       Assert.isTrue(StringUtils.containsIgnoreCase(database, databaseName));
     }
@@ -1686,37 +1686,36 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(reqBody)
-            .when()
-            .post("/api/connections/{connectionId}/createDataSource", connectionId)
-            .then()
-            .log().all()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().response()
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(reqBody)
+        .when()
+        .post("/api/connections/{connectionId}/createDataSource", connectionId)
+        .then()
+        .log().all()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().response()
     ;
 
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("columnNamePattern", columnNamePattern)
-                    .param("webSocketId", webSocketId)
-                    .param("size", 20)
-                    .param("page", 0)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases/{databaseName}/tables/{tableName}/columns", connectionId, databaseName, tableName)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("columnNamePattern", columnNamePattern)
+            .param("webSocketId", webSocketId)
+            .param("size", 20)
+            .param("page", 0)
+            .when()
+            .get("/api/connections/{connectionId}/databases/{databaseName}/tables/{tableName}/columns", connectionId, databaseName, tableName)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     List<Map> columnList = from(resp.asString()).getList("columns", Map.class);
-    for(Map<String, Object> columnMap : columnList){
+    for (Map<String, Object> columnMap : columnList) {
       String columnType = (String) columnMap.get("columnType");
       String columnName = (String) columnMap.get("columnName");
       System.out.println(columnName + " : " + columnType);
@@ -1739,21 +1738,20 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("webSocketId", webSocketId)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases/{databaseName}/tables/{tableName}/information", connectionId, databaseName, tableName)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("webSocketId", webSocketId)
+            .when()
+            .get("/api/connections/{connectionId}/databases/{databaseName}/tables/{tableName}/information", connectionId, databaseName, tableName)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     Map<String, Object> tableInformationMap = from(resp.asString()).getMap("");
-    for(String key : tableInformationMap.keySet()){
+    for (String key : tableInformationMap.keySet()) {
       System.out.println(key + " = " + tableInformationMap.get(key));
     }
   }
@@ -1768,23 +1766,22 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("databaseName", databaseName)
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("databaseName", databaseName)
 //                    .param("size", 10)
 //                    .param("page", 1)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases", connectionId)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+            .when()
+            .get("/api/connections/{connectionId}/databases", connectionId)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     List<String> databaseList = from(resp.asString()).getList("databases", String.class);
-    for(String database : databaseList){
+    for (String database : databaseList) {
       System.out.println(database);
       Assert.isTrue(StringUtils.containsIgnoreCase(database, databaseName));
     }
@@ -1800,23 +1797,22 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("databaseName", databaseName)
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("databaseName", databaseName)
 //                    .param("size", 10)
 //                    .param("page", 1)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases", connectionId)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+            .when()
+            .get("/api/connections/{connectionId}/databases", connectionId)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     List<String> databaseList = from(resp.asString()).getList("databases", String.class);
-    for(String database : databaseList){
+    for (String database : databaseList) {
       System.out.println(database);
       Assert.isTrue(StringUtils.containsIgnoreCase(database, databaseName));
     }
@@ -1833,23 +1829,22 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("tableName", tableNamePattern)
-                    .param("size", 5)
-                    .param("page", 0)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases/{database}/tables", connectionId, databaseName)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("tableName", tableNamePattern)
+            .param("size", 5)
+            .param("page", 0)
+            .when()
+            .get("/api/connections/{connectionId}/databases/{database}/tables", connectionId, databaseName)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     List<String> tableList = from(resp.asString()).getList("tables", String.class);
-    for(String table : tableList){
+    for (String table : tableList) {
       System.out.println(table);
       Assert.isTrue(StringUtils.containsIgnoreCase(table, tableNamePattern));
     }
@@ -1865,23 +1860,22 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("databaseName", databaseNamePattern)
-                    .param("size", 5)
-                    .param("page", 0)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases", connectionId)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("databaseName", databaseNamePattern)
+            .param("size", 5)
+            .param("page", 0)
+            .when()
+            .get("/api/connections/{connectionId}/databases", connectionId)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     List<String> databaseList = from(resp.asString()).getList("databases", String.class);
-    for(String database : databaseList){
+    for (String database : databaseList) {
       System.out.println(database);
       Assert.isTrue(StringUtils.containsIgnoreCase(database, databaseNamePattern));
     }
@@ -1898,23 +1892,22 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .param("tableName", tableNamePattern)
-                    .param("size", 5)
-                    .param("page", 0)
-                    .when()
-                    .get("/api/connections/{connectionId}/databases/{database}/tables", connectionId, databaseName)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .param("tableName", tableNamePattern)
+            .param("size", 5)
+            .param("page", 0)
+            .when()
+            .get("/api/connections/{connectionId}/databases/{database}/tables", connectionId, databaseName)
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     List<String> tableList = from(resp.asString()).getList("tables", String.class);
-    for(String table : tableList){
+    for (String table : tableList) {
       System.out.println(table);
       Assert.isTrue(StringUtils.containsIgnoreCase(table, tableNamePattern));
     }
@@ -1936,38 +1929,37 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(reqBody)
+        .when()
+        .post("/api/connections/{connectionId}/createDataSource", connectionId)
+        .then()
+        .log().all()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().response()
+    ;
+
+    Response resp =
+        given()
             .auth().oauth2(oauth_token)
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .body(reqBody)
+            .log().all()
             .when()
-            .post("/api/connections/{connectionId}/createDataSource", connectionId)
+            .post("/api/connections/{connectionId}/databases/{database}/change", connectionId, databaseName)
             .then()
             .log().all()
             .statusCode(HttpStatus.SC_OK)
-            .extract().response()
-    ;
-
-    Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .body(reqBody)
-                    .log().all()
-                    .when()
-                    .post("/api/connections/{connectionId}/databases/{database}/change", connectionId, databaseName)
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+            .extract().response();
     // @formatter:on
   }
 
   @Test
   @OAuthRequest(username = "polaris", value = {"PERM_ROLE_SYSTEM_USER", "PERM_SYSTEM_WRITE_DATASOURCE"})
-  public void createConnectionPublished(){
+  public void createConnectionPublished() {
 
     String ownerWsId = "ws-02";
     String othersWsId = "ws-05";
@@ -1999,7 +1991,7 @@ import static org.hamcrest.Matchers.hasSize;
 
   @Test
   @OAuthRequest(username = "polaris", value = {"PERM_ROLE_SYSTEM_USER", "PERM_SYSTEM_WRITE_DATASOURCE"})
-  public void createConnectionNotPublished(){
+  public void createConnectionNotPublished() {
     String ownerWsId = "ws-02";
     String othersWsId = "ws-05";
     String sharedWsId = "ws-03";
@@ -2034,7 +2026,7 @@ import static org.hamcrest.Matchers.hasSize;
 
   @Test
   @OAuthRequest(username = "polaris", value = {"PERM_ROLE_SYSTEM_USER", "PERM_SYSTEM_WRITE_DATASOURCE"})
-  public void patchConnectionToWorkspace(){
+  public void patchConnectionToWorkspace() {
     String ownerWsId = "ws-02";
     String othersWsId = "ws-05";
     String sharedWsId = "ws-03";
@@ -2078,7 +2070,7 @@ import static org.hamcrest.Matchers.hasSize;
 
   @Test
   @OAuthRequest(username = "polaris", value = {"PERM_ROLE_SYSTEM_USER", "PERM_SYSTEM_WRITE_DATASOURCE"})
-  public void connectionAfterWorkspaceDelete(){
+  public void connectionAfterWorkspaceDelete() {
     String ownerWsId = "ws-02";
 
     List<String> wsList = new ArrayList<>();
@@ -2104,10 +2096,10 @@ import static org.hamcrest.Matchers.hasSize;
     //3. Workspace 삭제
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .contentType(ContentType.JSON)
-            .when()
-            .delete("/api/workspaces/" + ownerWsId);
+        .auth().oauth2(oauth_token)
+        .contentType(ContentType.JSON)
+        .when()
+        .delete("/api/workspaces/" + ownerWsId);
     // @formatter:on
 
     //4. 전체 목록조회
@@ -2121,7 +2113,7 @@ import static org.hamcrest.Matchers.hasSize;
 
   @Test
   @OAuthRequest(username = "polaris", value = {"PERM_ROLE_SYSTEM_USER", "PERM_SYSTEM_WRITE_DATASOURCE"})
-  public void workspaceAfterConnectionDelete(){
+  public void workspaceAfterConnectionDelete() {
     String ownerWsId = "ws-02";
 
     List<String> wsList = new ArrayList<>();
@@ -2147,10 +2139,10 @@ import static org.hamcrest.Matchers.hasSize;
     //3. Connection 삭제
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .contentType(ContentType.JSON)
-            .when()
-            .delete("/api/connections/" + connId);
+        .auth().oauth2(oauth_token)
+        .contentType(ContentType.JSON)
+        .when()
+        .delete("/api/connections/" + connId);
     // @formatter:on
 
     //4. 전체 목록조회
@@ -2162,7 +2154,7 @@ import static org.hamcrest.Matchers.hasSize;
 
   @Test
   @OAuthRequest(username = "polaris", value = {"PERM_ROLE_SYSTEM_USER", "PERM_SYSTEM_WRITE_DATASOURCE"})
-  public void listConnectionMultiple(){
+  public void listConnectionMultiple() {
 
     String ownerWsId = "ws-02";
     String othersWsId = "ws-05";
@@ -2205,17 +2197,17 @@ import static org.hamcrest.Matchers.hasSize;
 
   }
 
-  private String createConnection(Map reqMap){
+  private String createConnection(Map reqMap) {
     String reqBody = GlobalObjectMapper.writeValueAsString(reqMap);
     // @formatter:off
     Response createResponse =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .body(reqBody)
-                    .log().all()
-                    .contentType(ContentType.JSON)
-                    .when()
-                    .post("/api/connections");
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .log().all()
+            .contentType(ContentType.JSON)
+            .when()
+            .post("/api/connections");
     // @formatter:on
 
     //2. 타인 Workspace에 공개 (Patch)
@@ -2223,42 +2215,40 @@ import static org.hamcrest.Matchers.hasSize;
     return connId;
   }
 
-  private void patchConnection(String connectionId, Map reqMap){
+  private void patchConnection(String connectionId, Map reqMap) {
     String reqBody = GlobalObjectMapper.writeValueAsString(reqMap);
     // @formatter:off
     Response createResponse =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .body(reqBody)
-                    .log().all()
-                    .contentType(ContentType.JSON)
-                    .when()
-                    .patch("/api/connections/" + connectionId);
+        given()
+            .auth().oauth2(oauth_token)
+            .body(reqBody)
+            .log().all()
+            .contentType(ContentType.JSON)
+            .when()
+            .patch("/api/connections/" + connectionId);
     // @formatter:on
   }
 
-  private List getConnectionList(String projection, String workspaceId){
+  private List getConnectionList(String projection, String workspaceId) {
     // @formatter:off
     Response resp = given().auth().oauth2(oauth_token).accept(ContentType.JSON).contentType(ContentType.JSON)
-            .param("projection", projection)
-            .when()
+        .param("projection", projection)
+        .when()
 //            .get("/api/connections/workspaces/{workspaceId}", workspaceId)
-            .get("/api/workspaces/{workspaceId}/connections", workspaceId)
-            .then().log().all().statusCode(HttpStatus.SC_OK).extract().response()
-            ;
+        .get("/api/workspaces/{workspaceId}/connections", workspaceId)
+        .then().log().all().statusCode(HttpStatus.SC_OK).extract().response();
     // @formatter:on
     Map respMap = from(resp.asString()).getMap("_embedded");
     List connections = (respMap == null ? new ArrayList<>() : (List) respMap.get("connections"));
     return connections;
   }
 
-  private List getWorkspaceList(){
+  private List getWorkspaceList() {
     // @formatter:off
     Response resp = given().auth().oauth2(oauth_token).accept(ContentType.JSON).contentType(ContentType.JSON)
-            .when()
-            .get("/api/workspaces")
-            .then().log().all().statusCode(HttpStatus.SC_OK).extract().response()
-            ;
+        .when()
+        .get("/api/workspaces")
+        .then().log().all().statusCode(HttpStatus.SC_OK).extract().response();
     // @formatter:on
     Map respMap = from(resp.asString()).getMap("_embedded");
     List workspaces = (respMap == null ? new ArrayList<>() : (List) respMap.get("workspaces"));
@@ -2267,7 +2257,7 @@ import static org.hamcrest.Matchers.hasSize;
 
   @Test
   @OAuthRequest(username = "polaris", value = {"PERM_ROLE_SYSTEM_USER", "PERM_SYSTEM_WRITE_DATASOURCE"})
-  public void tableInformationForQuery(){
+  public void tableInformationForQuery() {
 
     MySQLConnection connection = new MySQLConnection();
     connection.setHostname("localhost");
@@ -2285,22 +2275,21 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     Response resp =
-            given()
-                    .auth().oauth2(oauth_token)
-                    .accept(ContentType.JSON)
-                    .contentType(ContentType.JSON)
-                    .body(request)
-                    .log().all()
-                    .when()
-                    .post("/api/connections/query/information")
-                    .then()
-                    .log().all()
-                    .statusCode(HttpStatus.SC_OK)
-                    .extract().response()
-            ;
+        given()
+            .auth().oauth2(oauth_token)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(request)
+            .log().all()
+            .when()
+            .post("/api/connections/query/information")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().response();
     // @formatter:on
     Map<String, Object> tableInformationMap = from(resp.asString()).getMap("");
-    for(String key : tableInformationMap.keySet()){
+    for (String key : tableInformationMap.keySet()) {
       System.out.println(key + " = " + tableInformationMap.get(key));
     }
 
@@ -2312,14 +2301,14 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .when()
-            .post("/api/connections/query/hive/databases")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .log().all();
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .when()
+        .post("/api/connections/query/hive/databases")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all();
     // @formatter:on
   }
 
@@ -2332,16 +2321,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(request)
-            .log().all()
-            .when()
-            .post("/api/connections/query/hive/tables")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .log().all();
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .log().all()
+        .when()
+        .post("/api/connections/query/hive/tables")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all();
     // @formatter:on
   }
 
@@ -2356,16 +2345,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(request)
-            .log().all()
-            .when()
-            .post("/api/connections/query/hive/data")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .log().all();
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .log().all()
+        .when()
+        .post("/api/connections/query/hive/data")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all();
     // @formatter:on
   }
 
@@ -2381,16 +2370,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(request)
-            .log().all()
-            .when()
-            .post("/api/connections/query/hive/data")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .log().all();
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .log().all()
+        .when()
+        .post("/api/connections/query/hive/data")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all();
     // @formatter:on
   }
 
@@ -2405,16 +2394,16 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(request)
-            .log().all()
-            .when()
-            .post("/api/connections/query/hive/data")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .log().all();
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .log().all()
+        .when()
+        .post("/api/connections/query/hive/data")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all();
     // @formatter:on
   }
 
@@ -2429,17 +2418,132 @@ import static org.hamcrest.Matchers.hasSize;
 
     // @formatter:off
     given()
-            .auth().oauth2(oauth_token)
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(request)
-            .log().all()
-            .when()
-            .post("/api/connections/query/hive/data")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .log().all();
+        .auth().oauth2(oauth_token)
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .body(request)
+        .log().all()
+        .when()
+        .post("/api/connections/query/hive/data")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all();
     // @formatter:on
   }
 
+  @Test
+  @OAuthRequest(username = "polaris", value = {"ROLE_SYSTEM_USER", "ROLE_PERM_SYSTEM_WRITE_DATASOURCE"})
+  @Sql({"/sql/test_dataconnection.sql"})
+  public void deleteTableInDatabase() throws SQLException, ClassNotFoundException {
+    // given
+    final String webSocketId = "test-ws";
+    final String hdfsConfPath = "/tmp/hdfs-conf";
+    final String loginUserId = "polaris";
+    final String personalDatabasePrefix = "private";
+
+    HiveConnection hiveConnection = new HiveConnection();
+    hiveConnection.setUsername("read_only");
+    hiveConnection.setPassword("1111");
+    hiveConnection.setHostname("localhost");
+    hiveConnection.setPort(10000);
+    hiveConnection.setProperties("{" +
+        "  \"metatron.hdfs.conf.path\": \"" + hdfsConfPath + "\"," +
+        "  \"metatron.hive.admin.name\": \"hive_admin\"," +
+        "  \"metatron.hive.admin.password\": \"1111\"," +
+        "  \"metatron.personal.database.prefix\": \"" + personalDatabasePrefix + "\"" +
+        "}");
+    WorkbenchDataSourceUtils.createDataSourceInfo(hiveConnection, webSocketId, hiveConnection.getUsername(), hiveConnection.getPassword(), false);
+
+    final String personalDatabase = String.format("%s_%s", personalDatabasePrefix, loginUserId);
+
+    cleanUpHivePersonalDatabaseTestFixture(createHiveJdbcConnection(hiveConnection), personalDatabase);
+    createDummyTableHivePersonalDatabase(createHiveJdbcConnection(hiveConnection), personalDatabase);
+
+    final String connectionId = "hive-local-enable-personal-database";
+    final String table = "dummy";
+
+    // REST when/then
+    given()
+        .auth().oauth2(oauth_token)
+        .param("webSocketId", webSocketId)
+        .log().all()
+    .when()
+        .delete("/api/connections/{connectionId}/databases/{personalDatabase}/tables/{table}", connectionId, personalDatabase, table)
+    .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT)
+        .log().all();
+
+  }
+
+  private Connection createHiveJdbcConnection(HiveConnection hiveConnection) throws SQLException, ClassNotFoundException {
+    final String URL = String.format("jdbc:hive2://%s:%s", hiveConnection.getHostname(), hiveConnection.getPort());
+    Class.forName(HiveDriver.class.getName());
+    return DriverManager.getConnection(URL,
+        hiveConnection.getPropertiesMap().get(HiveConnection.PROPERTY_KEY_ADMIN_NAME),
+        hiveConnection.getPropertiesMap().get(HiveConnection.PROPERTY_KEY_ADMIN_PASSWORD));
+  }
+
+  private void cleanUpHivePersonalDatabaseTestFixture(Connection conn, String personalDatabase) {
+    StringBuffer script = new StringBuffer();
+    script.append(String.format("DROP DATABASE IF EXISTS %s CASCADE;", personalDatabase));
+
+    TestJdbcUtils.executeSqlScript(conn, script.toString());
+  }
+
+  private void createDummyTableHivePersonalDatabase(Connection conn, String personalDatabase) {
+    StringBuffer script = new StringBuffer();
+    script.append(String.format("CREATE DATABASE %s;", personalDatabase));
+    script.append(String.format("CREATE TABLE %s.dummy (eid INT, name STRING);", personalDatabase));
+
+    TestJdbcUtils.executeSqlScript(conn, script.toString());
+  }
+
+  @Test
+  @OAuthRequest(username = "polaris", value = {"ROLE_SYSTEM_USER", "ROLE_PERM_SYSTEM_WRITE_DATASOURCE"})
+  @Sql({"/sql/test_dataconnection.sql"})
+  public void renameTableInDatabase() throws SQLException, ClassNotFoundException {
+    // given
+    final String webSocketId = "test-ws";
+    final String hdfsConfPath = "/tmp/hdfs-conf";
+    final String loginUserId = "polaris";
+    final String personalDatabasePrefix = "private";
+
+    HiveConnection hiveConnection = new HiveConnection();
+    hiveConnection.setUsername("read_only");
+    hiveConnection.setPassword("1111");
+    hiveConnection.setHostname("localhost");
+    hiveConnection.setPort(10000);
+    hiveConnection.setProperties("{" +
+        "  \"metatron.hdfs.conf.path\": \"" + hdfsConfPath + "\"," +
+        "  \"metatron.hive.admin.name\": \"hive_admin\"," +
+        "  \"metatron.hive.admin.password\": \"1111\"," +
+        "  \"metatron.personal.database.prefix\": \"" + personalDatabasePrefix + "\"" +
+        "}");
+    WorkbenchDataSourceUtils.createDataSourceInfo(hiveConnection, webSocketId, hiveConnection.getUsername(), hiveConnection.getPassword(), false);
+
+    final String personalDatabase = String.format("%s_%s", personalDatabasePrefix, loginUserId);
+
+    cleanUpHivePersonalDatabaseTestFixture(createHiveJdbcConnection(hiveConnection), personalDatabase);
+    createDummyTableHivePersonalDatabase(createHiveJdbcConnection(hiveConnection), personalDatabase);
+
+    final String connectionId = "hive-local-enable-personal-database";
+    final String table = "dummy";
+
+    // REST when/then
+    final String requestBody = "{" +
+        "  \"webSocketId\": \"" + webSocketId + "\"," +
+        "  \"table\": \"renamedTable\"" +
+        "}";
+
+    given()
+        .auth().oauth2(oauth_token)
+        .contentType(ContentType.JSON)
+        .body(requestBody)
+        .log().all()
+    .when()
+        .put("/api/connections/{connectionId}/databases/{personalDatabase}/tables/{table}", connectionId, personalDatabase, table)
+    .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT)
+        .log().all();
+  }
 }
