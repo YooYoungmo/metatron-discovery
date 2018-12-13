@@ -17,9 +17,12 @@ package app.metatron.discovery.domain.datasource.connection;
 import app.metatron.discovery.common.criteria.ListCriterion;
 import app.metatron.discovery.common.criteria.ListFilter;
 import app.metatron.discovery.common.entity.SearchParamValidator;
+import app.metatron.discovery.common.exception.GlobalErrorCodes;
+import app.metatron.discovery.common.exception.MetatronException;
 import app.metatron.discovery.common.exception.ResourceNotFoundException;
 import app.metatron.discovery.domain.datasource.DataSourceProperties;
 import app.metatron.discovery.domain.datasource.Field;
+import app.metatron.discovery.domain.datasource.connection.dto.RenameDatabaseTable;
 import app.metatron.discovery.domain.datasource.connection.jdbc.*;
 import app.metatron.discovery.domain.datasource.ingestion.file.FileFormat;
 import app.metatron.discovery.domain.datasource.ingestion.jdbc.JdbcIngestionInfo;
@@ -30,7 +33,9 @@ import app.metatron.discovery.domain.storage.StorageProperties;
 import app.metatron.discovery.domain.workbench.Workbench;
 import app.metatron.discovery.domain.workbench.WorkbenchRepository;
 import app.metatron.discovery.domain.workbench.hive.HiveNamingRule;
+import app.metatron.discovery.domain.workbench.util.WorkbenchDataSource;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSourceUtils;
+import app.metatron.discovery.util.AuthUtils;
 import app.metatron.discovery.util.PolarisUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -49,6 +54,7 @@ import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.web.bind.annotation.*;
 
 import javax.sql.DataSource;
@@ -423,6 +429,70 @@ public class DataConnectionController {
     return ResponseEntity.ok(
         connectionService.searchTables((JdbcDataConnection) connection, databaseName, tableName, webSocketId, pageable)
     );
+  }
+
+  @RequestMapping(value = "/connections/{connectionId}/databases/{databaseName}/tables/{tableName}", method = RequestMethod.DELETE)
+  public @ResponseBody ResponseEntity<?> deleteTableInDatabase(
+      @PathVariable("connectionId") String connectionId,
+      @PathVariable("databaseName") String database,
+      @PathVariable("tableName") String table,
+      @RequestParam(value = "webSocketId") String webSocketId) {
+    DataConnection connection = connectionRepository.findOne(connectionId);
+    if(connection == null) {
+      throw new ResourceNotFoundException(connectionId);
+    }
+
+    SingleConnectionDataSource connectionDataSource = getConnectionDataSourceFromWebSocket(connection, database, webSocketId);
+
+    final String sql = String.format("DROP TABLE %s.%s", database, table);
+    connectionService.ddlQuery((JdbcDataConnection)connection, connectionDataSource, sql);
+
+    return ResponseEntity.noContent().build();
+  }
+
+  @RequestMapping(value = "/connections/{connectionId}/databases/{databaseName}/tables/{tableName}", method = RequestMethod.PUT)
+  public @ResponseBody ResponseEntity<?> renameTableInDatabase(
+      @PathVariable("connectionId") String connectionId,
+      @PathVariable("databaseName") String database,
+      @PathVariable("tableName") String table,
+      @RequestBody RenameDatabaseTable renameTable) {
+    DataConnection connection = connectionRepository.findOne(connectionId);
+    if(connection == null) {
+      throw new ResourceNotFoundException(connectionId);
+    }
+
+    SingleConnectionDataSource connectionDataSource = getConnectionDataSourceFromWebSocket(connection, database, renameTable.getWebSocketId());
+
+    final String sql = String.format("ALTER TABLE %s.%s RENAME TO %s.%s", database, table, database, renameTable.getTable());
+    connectionService.ddlQuery((JdbcDataConnection)connection, connectionDataSource, sql);
+
+    return ResponseEntity.noContent().build();
+  }
+
+  private SingleConnectionDataSource getConnectionDataSourceFromWebSocket(DataConnection connection, String database, String webSocketId) {
+    WorkbenchDataSource dataSourceInfo = WorkbenchDataSourceUtils.findDataSourceInfo(webSocketId);
+    if(connection instanceof JdbcDataConnection) {
+      SingleConnectionDataSource connectionDataSource;
+      if(connection instanceof HiveConnection) {
+        HiveConnection hiveConnection = (HiveConnection)connection;
+
+        if(hiveConnection.isSupportPersonalDatabase()) {
+          if(hiveConnection.isOwnPersonalDatabase(AuthUtils.getAuthUserName(), database)) {
+            connectionDataSource = dataSourceInfo.getSecondarySingleConnectionDataSource();
+          } else {
+            throw new MetatronException(GlobalErrorCodes.BAD_REQUEST_CODE, String.format("%s database is not %s", database, AuthUtils.getAuthUserName()));
+          }
+        } else {
+          throw new MetatronException(GlobalErrorCodes.BAD_REQUEST_CODE, String.format("%s connection is not supported", connection.getId()));
+        }
+      } else {
+        connectionDataSource = dataSourceInfo.getSingleConnectionDataSource();
+      }
+
+      return connectionDataSource;
+    } else {
+      throw new MetatronException(GlobalErrorCodes.BAD_REQUEST_CODE, String.format("%s connection is not supported", connection.getId()));
+    }
   }
 
   @RequestMapping(value = "/connections/{connectionId}/databases/{databaseName}/tables/{tableName}/columns",
