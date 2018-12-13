@@ -14,6 +14,7 @@
 
 package app.metatron.discovery.domain.datasource.connection.jdbc;
 
+import app.metatron.discovery.domain.workbench.hive.HiveNamingRule;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -290,6 +291,25 @@ public class HiveConnection extends HiveMetastoreConnection {
       } else {
         return false;
       }
+    }
+  }
+
+  public boolean isSupportPersonalDatabase() {
+    return this.isSupportSaveAsHiveTable();
+  }
+
+  public boolean isOwnPersonalDatabase(String userName, String database) {
+    if(this.isSupportPersonalDatabase()) {
+      Map<String, String> connectionProperties = getPropertiesMap();
+
+      if(database.toUpperCase().startsWith(connectionProperties.get(PROPERTY_KEY_PERSONAL_DATABASE_PREFIX).toUpperCase()) &&
+          database.toUpperCase().endsWith(HiveNamingRule.replaceNotAllowedCharacters(userName).toUpperCase())) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
     }
   }
 }
