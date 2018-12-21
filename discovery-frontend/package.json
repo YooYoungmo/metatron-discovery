@@ -56,7 +56,8 @@
     "sql-formatter": "^2.1.0",
     "stompjs": "^2.3.3",
     "string-pixel-width": "^1.4.0",
-    "zone.js": "^0.8.17"
+    "zone.js": "^0.8.17",
+    "proj4": "^2.5.0"
   },
   "devDependencies": {
     "@angular/cli": "1.3.2",
