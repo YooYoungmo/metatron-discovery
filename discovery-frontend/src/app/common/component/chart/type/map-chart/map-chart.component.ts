@@ -730,6 +730,10 @@ export class MapChartComponent extends BaseChart<UIMapOption> implements AfterVi
         }
     }
 
+    // Tango GIS
+    else if( _.eq(this.getUiMapOption().style, MapLayerStyle.TANGO_GIS) ) {
+      layer = this. tangoGisLayer;
+    }
     ////////////////////////////////////////////////////////
     // Map creation
     ////////////////////////////////////////////////////////

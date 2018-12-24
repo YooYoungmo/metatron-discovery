@@ -25,7 +25,8 @@ export enum MapType {
 export enum MapLayerStyle {
   COLORED = 'Colored',
   LIGHT = 'Light',
-  DARK = 'Dark'
+  DARK = 'Dark',
+  TANGO_GIS = 'TangoGis'
 }
 
 /**
