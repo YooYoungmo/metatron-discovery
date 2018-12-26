@@ -2016,7 +2016,7 @@ export namespace OptionGenerator {
         layerNum: 0,
         showMapLayer: true,
         map: MapType.OSM,
-        style: 'Light',
+        style: 'TangoGis',
         licenseNotation: "© OpenStreetMap contributors",
         showDistrictLayer: true,
         districtUnit: "state",
