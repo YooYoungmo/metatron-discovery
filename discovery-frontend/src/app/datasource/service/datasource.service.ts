@@ -29,7 +29,7 @@ import {UIGridChart} from '../../common/component/chart/option/ui-option/ui-grid
 import {FilterUtil} from '../../dashboard/util/filter.util';
 import {InclusionFilter} from '../../domain/workbook/configurations/filter/inclusion-filter';
 import {Dashboard} from '../../domain/dashboard/dashboard';
-import { Datasource, Field, LogicalType } from '../../domain/datasource/datasource';
+import {Field, LogicalType } from '../../domain/datasource/datasource';
 import {MeasureInequalityFilter} from '../../domain/workbook/configurations/filter/measure-inequality-filter';
 import {AdvancedFilter} from '../../domain/workbook/configurations/filter/advanced-filter';
 import {MeasurePositionFilter} from '../../domain/workbook/configurations/filter/measure-position-filter';
@@ -43,12 +43,12 @@ import {DashboardUtil} from '../../dashboard/util/dashboard.util';
 import { GeoBoundaryFormat, GeoHashFormat } from '../../domain/workbook/configurations/field/geo-field';
 import { UIMapOption } from '../../common/component/chart/option/ui-option/map/ui-map-chart';
 import { ChartUtil } from '../../common/component/chart/option/util/chart-util';
-import {Limit} from "../../domain/workbook/configurations/limit";
 import { CriterionKey, ListCriterion } from '../../domain/datasource/listCriterion';
 import {CommonConstant} from "../../common/constant/common.constant";
 import { CriteriaFilter } from '../../domain/datasource/criteriaFilter';
 import { UITileLayer } from '../../common/component/chart/option/ui-option/map/ui-tile-layer';
 import { MapLayerType } from '../../common/component/chart/option/define/map/map-common';
+import {RegExprFilter} from "../../domain/workbook/configurations/filter/reg-expr-filter";
 
 @Injectable()
 export class DatasourceService extends AbstractService {
@@ -233,6 +233,11 @@ export class DatasourceService extends AbstractService {
             const wildcard: WildCardFilter = <WildCardFilter>preFilter;
             if (wildcard.contains && wildcard.value && wildcard.value.length > 0) {
               tempFilters.push(FilterUtil.convertToServerSpec(wildcard));
+            }
+          } else if (preFilter.type === 'regexpr') {
+            const regExpr: RegExprFilter = <RegExprFilter>preFilter;
+            if (regExpr.expr) {
+              tempFilters.push(FilterUtil.convertToServerSpec(regExpr));
             }
           }
         });
