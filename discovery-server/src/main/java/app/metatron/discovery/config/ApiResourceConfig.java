@@ -409,6 +409,17 @@ public class ApiResourceConfig extends WebMvcConfigurerAdapter {
                 Metadata.class, Catalog.class,
                 ColumnDictionary.class, CodeTable.class, CodeValuePair.class,
                 Tag.class, TagDomain.class);
+          config.getCorsRegistry().addMapping(API_PREFIX + "/**")
+              .allowCredentials(true)
+              .allowedOrigins("*")
+              .allowedMethods("*")
+              .allowedHeaders("*")
+              .exposedHeaders("Access-Control-Allow-Origin",
+                  "Access-Control-Allow-Methods",
+                  "Access-Control-Allow-Headers",
+                  "Access-Control-Max-Age",
+                  "Access-Control-Request-Headers",
+                  "Access-Control-Request-Method");
       }
 
       /**
