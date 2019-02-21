@@ -105,6 +105,8 @@ export class DetailDataSourceComponent extends AbstractComponent implements OnIn
   // timestamp column
   public timestampColumn: any;
 
+  public reUploadFile: boolean = false;
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   | Constructor
   |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -352,6 +354,18 @@ export class DetailDataSourceComponent extends AbstractComponent implements OnIn
     this.deleteModalComponent.init(modal);
   }
 
+  public reuploadFileModalOpen() {
+    this.reUploadFile = true;
+  }
+
+  public isFileType(): boolean {
+    if (this.datasource.hasOwnProperty('srcType')) {
+      return this.datasource.srcType === SourceType.FILE;
+    } else {
+      return false;
+    }
+  }
+
   /**
    * 확인 팝업 모달 오픈
    * @param {string} type
@@ -567,5 +581,4 @@ export class DetailDataSourceComponent extends AbstractComponent implements OnIn
       console.info(e);
     }
   }
-
 }
