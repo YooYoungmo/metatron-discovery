@@ -39,6 +39,8 @@ import { CriterionFilterBoxComponent } from './component/criterion/criterion-fil
 import { CriterionCheckboxComponent } from './component/criterion/criterion-checkbox.component';
 import { CriterionTimeRadioboxComponent } from './component/criterion/criterion-time-radiobox.component';
 import {DataConnectionCreateService} from "./service/data-connection-create.service";
+import {ImportFileComponent} from "../workbench/component/import-file/import-file.component";
+import {ReUploadFileDataSource} from "./data-source-list/detail-data-source/reupload-file-data-source/reupload-file-data-source";
 import {DataSourceCreateModule} from "./data-source-list/create-data-source/data-source-create.module";
 import {FieldConfigService} from "./service/field-config.service";
 import {DatasourceMetadataSharedModule} from "../shared/datasource-metadata/datasource-metadata-shared.module";
@@ -85,6 +87,8 @@ const storageRoutes: Routes = [
     // criterion
     CriterionFilterBoxComponent,
     CriterionCheckboxComponent,
+    // criterion time radiobox
+    ReUploadFileDataSource
     CriterionTimeRadioboxComponent,
   ],
   exports: [

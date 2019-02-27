@@ -746,6 +746,11 @@ export class DatasourceService extends AbstractService {
     return this.post(this.API_URL + 'datasources/temporary', param);
   }
 
+  // 데이터소스 생성
+  public appendDataToDatasource(datasourceId: string, param: any): Promise<any> {
+    return this.patch(this.API_URL + `datasources/${datasourceId}/data`, param);
+  }
+
   /**
    * 저장된 Linked 데이터 소스 정보를 기반으로 임시 데이터 소스를 생성합니다.
    * @param {string} dataSourceId
