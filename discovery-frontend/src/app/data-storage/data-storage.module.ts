@@ -68,6 +68,8 @@ import { SchemaConfigComponent } from './component/schema-config/schema-config.c
 import { SchemaConfigDetailComponent } from './component/schema-config/schema-config-detail.component';
 import { SchemaConfigActionBarComponent } from './component/schema-config/schema-config-action-bar.component';
 import { GranularityService } from './service/granularity.service';
+import {ImportFileComponent} from "../workbench/component/import-file/import-file.component";
+import {ReUploadFileDataSource} from "./data-source-list/detail-data-source/reupload-file-data-source/reupload-file-data-source";
 
 const storageRoutes: Routes = [
   { path: '', component: DataSourceListComponent, canActivate: [DatasourceManagementGuard], canDeactivate:[CanDeactivateGuard] },
@@ -150,7 +152,9 @@ const storageRoutes: Routes = [
     // criterion checkbox
     CriterionCheckboxComponent,
     // criterion time radiobox
-    CriterionTimeRadioboxComponent
+    CriterionTimeRadioboxComponent,
+
+    ReUploadFileDataSource
   ],
   exports: [
     // 워크벤치에서 사용하기 위해
