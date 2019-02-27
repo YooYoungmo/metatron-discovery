@@ -43,6 +43,8 @@ import {DataStorageShareModule} from './data-storage-share.module';
 import {ConstantService} from '../shared/datasource-metadata/service/constant.service';
 import {DataStorageCriteriaModule} from './data-storage-criteria.module';
 import {SchedulingService} from './service/scheduling.service';
+import {ImportFileComponent} from "../workbench/component/import-file/import-file.component";
+import {ReUploadFileDataSource} from "./data-source-list/detail-data-source/reupload-file-data-source/reupload-file-data-source";
 
 const storageRoutes: Routes = [
   {
@@ -89,7 +91,8 @@ const storageRoutes: Routes = [
     // data connection
     DataConnectionComponent,
     CreateConnectionComponent,
-    UpdateConnectionComponent
+    UpdateConnectionComponent,
+    ReUploadFileDataSource
   ],
   exports: [
     // 워크벤치에서 사용하기 위해
