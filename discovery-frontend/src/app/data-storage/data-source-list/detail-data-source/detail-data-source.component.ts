@@ -101,6 +101,8 @@ export class DetailDataSourceComponent extends AbstractComponent implements OnIn
   // timestamp column
   public timestampColumn: any;
 
+  public reUploadFile: boolean = false;
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   | Constructor
   |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -298,6 +300,18 @@ export class DetailDataSourceComponent extends AbstractComponent implements OnIn
     modal.description = this.translateService.instant('msg.storage.ui.dsource.del.description');
     modal.btnName = this.translateService.instant('msg.storage.btn.dsource.del');
     this.deleteModalComponent.init(modal);
+  }
+
+  public reuploadFileModalOpen() {
+    this.reUploadFile = true;
+  }
+
+  public isFileType(): boolean {
+    if (this.datasource.hasOwnProperty('srcType')) {
+      return this.datasource.srcType === SourceType.FILE;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -548,5 +562,4 @@ export class DetailDataSourceComponent extends AbstractComponent implements OnIn
       console.info(e);
     }
   }
-
 }
