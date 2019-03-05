@@ -453,7 +453,7 @@ public class WorkspaceController {
     }
     Page<DataConnection> connections = dataConnectionRepository.findAll(searchPredicated, pageable);
 
-    return ResponseEntity.ok(this.pagedResourcesAssembler.toResource(connections, resourceAssembler));
+    return ResponseEntity.ok(this.pagedResourcesAssembler.toResource(connections));
   }
 
   /**
