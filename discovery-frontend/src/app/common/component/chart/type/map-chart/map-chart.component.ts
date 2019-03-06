@@ -69,8 +69,7 @@ import {ColorOptionConverter} from '../../option/converter/color-option-converte
 import {CommonConstant} from '@common/constant/common.constant';
 import {StringUtil} from '@common/util/string.util';
 import proj4 from 'proj4';
-
-declare let ol;
+import * as ol from 'openlayers';
 
 @Component({
   selector: 'map-chart',
