@@ -145,7 +145,11 @@ public class DataSourceService {
       Interval interval = Interval.parse(((DurationGranularity) granularity).getDuration());
       return  DataSource.GranularityType.fromInterval(interval);
     } else {
-      return DataSource.GranularityType.valueOf(((SimpleGranularity) granularity).getValue());
+      try {
+        return DataSource.GranularityType.valueOf(((SimpleGranularity) granularity).getValue());
+      } catch (NullPointerException npe) {
+        return DataSource.GranularityType.NONE;
+      }
     }
 
   }
