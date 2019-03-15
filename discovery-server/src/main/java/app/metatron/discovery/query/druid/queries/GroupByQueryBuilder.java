@@ -366,6 +366,8 @@ public class GroupByQueryBuilder extends AbstractQueryBuilder {
         minMaxFields.add(aliasName);
 
       } else if (field instanceof TimestampField) {
+        app.metatron.discovery.domain.datasource.Field datasourceField = this.metaFieldMap.get(fieldName);
+        TimeFieldFormat originalTimeFormat = (TimeFieldFormat) datasourceField.getFormatObject();
 
         app.metatron.discovery.domain.datasource.Field datasourceField = this.metaFieldMap.get(fieldName);
         TimeFieldFormat originalTimeFormat = (TimeFieldFormat) datasourceField.getFormatObject();
@@ -373,6 +375,14 @@ public class GroupByQueryBuilder extends AbstractQueryBuilder {
         TimestampField timestampField = (TimestampField) field;
 
         TimeFieldFormat timeFormat = (TimeFieldFormat) timestampField.getFormat();
+        if (timeFormat == null) {
+          timeFormat = originalTimeFormat;
+        }
+
+        if (datasourceField.backwardTime()) {
+          timeFormat.setUTC();
+        }
+
         if (timeFormat == null) {
           timeFormat = originalTimeFormat;
         }
