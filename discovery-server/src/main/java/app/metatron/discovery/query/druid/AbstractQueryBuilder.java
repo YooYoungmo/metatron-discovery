@@ -43,6 +43,7 @@
 package app.metatron.discovery.query.druid;
 
 import app.metatron.discovery.domain.workbook.configurations.filter.*;
+import app.metatron.discovery.domain.workbook.configurations.format.ContinuousTimeFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -358,14 +359,19 @@ public abstract class AbstractQueryBuilder {
                                           timeFormat.getLocale());
 
     } else {
-      timeFormatFunc = new TimeFormatFunc("\"" + fieldName + "\"",
-                                          originalTimeFormat.getFormat(),
-                                          originalTimeFormat.selectTimezone(),
-                                          originalTimeFormat.getLocale(),
-                                          timeFormat.enableSortField() ? timeFormat.getSortFormat() : timeFormat.getFormat(),
-                                          timeFormat.selectTimezone(),
-                                          timeFormat.getLocale());
+      if (timeFormat instanceof ContinuousTimeFormat
+          && ((ContinuousTimeFormat) timeFormat).getUnit() == TimeFieldFormat.TimeUnit.NONE) {
+        // convert original time format, if unit is NONE
+        ((ContinuousTimeFormat) timeFormat).setOriginalFormat(originalTimeFormat.getFormat());
+      }
 
+      timeFormatFunc = new TimeFormatFunc("\"" + fieldName + "\"",
+          originalTimeFormat.getFormat(),
+          originalTimeFormat.selectTimezone(),
+          originalTimeFormat.getLocale(),
+          timeFormat.enableSortField() ? timeFormat.getSortFormat() : timeFormat.getFormat(),
+          timeFormat.selectTimezone(),
+          timeFormat.getLocale());
     }
 
     return timeFormatFunc;
