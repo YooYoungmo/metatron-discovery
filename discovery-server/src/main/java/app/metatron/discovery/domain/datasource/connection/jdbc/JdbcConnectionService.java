@@ -1107,6 +1107,14 @@ public class JdbcConnectionService {
     return false;
   }
 
+  public boolean isSupportPersonalDatabase(DataConnection jdbcDataConnection){
+    JdbcDialect dialect = DataConnectionHelper.lookupDialect(jdbcDataConnection);
+    if(dialect instanceof HiveDialect){
+      return HiveDialect.isSupportPersonalDatabase(jdbcDataConnection);
+    }
+    return false;
+  }
+
   public Object getConnectionInformation(DataConnection jdbcDataConnection){
     JdbcDialect dialect = DataConnectionHelper.lookupDialect(jdbcDataConnection);
 
@@ -1121,5 +1129,6 @@ public class JdbcConnectionService {
     extensionInfo.put("iconResource4", dialect.getIconResource4());
     return extensionInfo;
   }
+
 
 }
