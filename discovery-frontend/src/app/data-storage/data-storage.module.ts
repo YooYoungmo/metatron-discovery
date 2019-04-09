@@ -39,7 +39,6 @@ import { CriterionFilterBoxComponent } from './component/criterion/criterion-fil
 import { CriterionCheckboxComponent } from './component/criterion/criterion-checkbox.component';
 import { CriterionTimeRadioboxComponent } from './component/criterion/criterion-time-radiobox.component';
 import {DataConnectionCreateService} from "./service/data-connection-create.service";
-import {ImportFileComponent} from "../workbench/component/import-file/import-file.component";
 import {ReUploadFileDataSource} from "./data-source-list/detail-data-source/reupload-file-data-source/reupload-file-data-source";
 import {DataSourceCreateModule} from "./data-source-list/create-data-source/data-source-create.module";
 import {FieldConfigService} from "./service/field-config.service";
@@ -47,6 +46,7 @@ import {DatasourceMetadataSharedModule} from "../shared/datasource-metadata/data
 import {DataStorageCommonModule} from "./data-storage-common.module";
 import {DataStorageShareModule} from "./data-storage-share.module";
 import {ConstantService} from "../shared/datasource-metadata/service/constant.service";
+import {FileModule} from "../common/file.module";
 
 const storageRoutes: Routes = [
   { path: '', component: DataSourceListComponent, canActivate: [DatasourceManagementGuard], canDeactivate:[CanDeactivateGuard] },
@@ -58,6 +58,7 @@ const storageRoutes: Routes = [
 @NgModule({
   imports: [
     CommonModule,
+    FileModule,
     DndModule,
     DataSourceCreateModule,
     DatasourceMetadataSharedModule,
@@ -87,9 +88,8 @@ const storageRoutes: Routes = [
     // criterion
     CriterionFilterBoxComponent,
     CriterionCheckboxComponent,
-    // criterion time radiobox
-    ReUploadFileDataSource
     CriterionTimeRadioboxComponent,
+    ReUploadFileDataSource,
   ],
   exports: [
     // 워크벤치에서 사용하기 위해
