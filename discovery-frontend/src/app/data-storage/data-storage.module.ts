@@ -45,6 +45,7 @@ import {DataStorageCriteriaModule} from './data-storage-criteria.module';
 import {SchedulingService} from './service/scheduling.service';
 import {ImportFileComponent} from "../workbench/component/import-file/import-file.component";
 import {ReUploadFileDataSource} from "./data-source-list/detail-data-source/reupload-file-data-source/reupload-file-data-source";
+import {FileModule} from "../common/file.module";
 
 const storageRoutes: Routes = [
   {
@@ -66,6 +67,7 @@ const storageRoutes: Routes = [
 @NgModule({
   imports: [
     CommonModule,
+    FileModule,
     DataSourceCreateModule,
     DatasourceMetadataSharedModule,
     DataStorageCommonModule,

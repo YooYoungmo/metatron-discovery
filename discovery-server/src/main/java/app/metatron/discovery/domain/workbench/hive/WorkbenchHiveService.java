@@ -22,14 +22,17 @@ import app.metatron.discovery.common.exception.MetatronException;
 import app.metatron.discovery.domain.dataconnection.DataConnection;
 import app.metatron.discovery.domain.dataconnection.dialect.HiveDialect;
 import app.metatron.discovery.domain.datasource.connection.jdbc.JdbcConnectionService;
+import app.metatron.discovery.domain.workbench.ImportExcelFileRowMapper;
 import app.metatron.discovery.domain.workbench.WorkbenchErrorCodes;
 import app.metatron.discovery.domain.workbench.WorkbenchException;
 import app.metatron.discovery.domain.workbench.WorkbenchProperties;
 import app.metatron.discovery.domain.workbench.dto.ImportCsvFile;
+import app.metatron.discovery.domain.workbench.dto.ImportExcelFile;
 import app.metatron.discovery.domain.workbench.dto.ImportFile;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSource;
 import app.metatron.discovery.domain.workbench.util.WorkbenchDataSourceManager;
 import app.metatron.discovery.util.csv.CsvTemplate;
+import app.metatron.discovery.util.excel.ExcelTemplate;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
@@ -170,16 +173,16 @@ public class WorkbenchHiveService {
   }
 
   private DataTable convertUploadFileToDataTable(ImportFile importFile) {
-    final String filePath = String.format("%s/%s", workbenchProperties.getTempCSVPath(), importFile.getUploadedFile());
-
-    if(Files.notExists((Paths.get(filePath)))) {
-      throw new BadRequestException(String.format("File not found : %s", filePath));
+    if(Files.notExists((Paths.get(importFile.getFilePath())))) {
+      throw new BadRequestException(String.format("File not found : %s", importFile.getFilePath()));
     }
 
-    File uploadedFile = new File(filePath);
+    File uploadedFile = new File(importFile.getFilePath());
     if(importFile instanceof ImportCsvFile){
       return convertCsvFileToDataTable(uploadedFile, importFile.getFirstRowHeadColumnUsed(),
           ((ImportCsvFile)importFile).getDelimiter(), ((ImportCsvFile)importFile).getLineSep());
+    } else if(importFile instanceof ImportExcelFile) {
+      return convertExcelFileToDataTable(uploadedFile, ((ImportExcelFile)importFile).getSheetName(), importFile.getFirstRowHeadColumnUsed());
     } else {
       throw new BadRequestException("Not supported file type");
     }
@@ -217,4 +220,21 @@ public class WorkbenchHiveService {
     List<String> fields = headers.values().stream().collect(Collectors.toList());
     return new DataTable(fields, records);
   }
+
+  private DataTable convertExcelFileToDataTable(File uploadedFile, String sheetName, Boolean firstRowHeadColumnUsed) {
+    ExcelTemplate excelTemplate = null;
+    try {
+      excelTemplate = new ExcelTemplate(uploadedFile);
+    } catch (IOException e) {
+      throw new MetatronException("Invalid Excel file");
+    }
+
+    Map<Integer, String> headers = Maps.newTreeMap();
+    List<Map<String, Object>> records = excelTemplate.getRows(sheetName,
+        new ImportExcelFileRowMapper(headers, firstRowHeadColumnUsed));
+
+    List<String> fields = headers.values().stream().collect(Collectors.toList());
+    return new DataTable(fields, records);
+  }
+
 }
