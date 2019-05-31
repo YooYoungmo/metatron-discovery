@@ -47,17 +47,19 @@ public class StorageProperties {
   @PostConstruct
   public void init() {
     // 설정 하위 호환을 위하여 처리
-    if(stagedb.getMetastore() == null) {
-      stagedb.setMetastore(new MetaStoreProperties(stagedb.getMetastoreUri(),
-                                                   stagedb.getMetastoreHost(),
-                                                   stagedb.getMetastorePort(),
-                                                   stagedb.getMetastoreSchema(),
-                                                   stagedb.getMetastoreUserName(),
-                                                   stagedb.getMetastorePassword()));
-    }
+    if(stagedb != null) {
+      if(stagedb.getMetastore() == null) {
+        stagedb.setMetastore(new MetaStoreProperties(stagedb.getMetastoreUri(),
+                                                     stagedb.getMetastoreHost(),
+                                                     stagedb.getMetastorePort(),
+                                                     stagedb.getMetastoreSchema(),
+                                                     stagedb.getMetastoreUserName(),
+                                                     stagedb.getMetastorePassword()));
+      }
 
-    if(stagedb.getMetastoreUri() == null) {
-      stagedb.setMetastoreUri(stagedb.getMetastore().getUri());
+      if(stagedb.getMetastoreUri() == null) {
+        stagedb.setMetastoreUri(stagedb.getMetastore().getUri());
+      }
     }
   }
 
