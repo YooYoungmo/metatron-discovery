@@ -1734,15 +1734,17 @@ export class PageWidgetComponent extends AbstractWidgetComponent implements OnIn
     let valid = true;
     let invalidDatasourceName = '';
     if (this.widget.configuration.chart.type === ChartType.MAP) {
-      for (const widgetDatasource of this.widget.configuration.dataSource.dataSources) {
-        for (const dashboardDatasource of this.inputWidget.dashBoard.dataSources) {
-          if (widgetDatasource.id == dashboardDatasource.id) {
-            if (!dashboardDatasource.valid) {
-              valid = false;
-              if (invalidDatasourceName != '') {
-                invalidDatasourceName += ', '
+      if(this.widget.configuration.dataSource.dataSources) {
+        for (const widgetDatasource of this.widget.configuration.dataSource.dataSources) {
+          for (const dashboardDatasource of this.inputWidget.dashBoard.dataSources) {
+            if (widgetDatasource.id == dashboardDatasource.id) {
+              if (!dashboardDatasource.valid) {
+                valid = false;
+                if (invalidDatasourceName != '') {
+                  invalidDatasourceName += ', '
+                }
+                invalidDatasourceName += dashboardDatasource.name;
               }
-              invalidDatasourceName += dashboardDatasource.name;
             }
           }
         }
