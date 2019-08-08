@@ -3122,7 +3122,7 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
 
   public saveAsHiveTable() {
     const currentTab: ResultTab = this._getCurrentResultTab();
-    this.saveAsHiveTableComponent.init(this.workbenchId, currentTab.result.csvFileAbsolutePath, this.websocketId);
+    this.saveAsHiveTableComponent.init(this.workbenchId, currentTab.result.csvFileAbsolutePath, this.websocketId, this.workbench.dataConnection);
   }
 
   public saveAsHiveTableSucceed() {
