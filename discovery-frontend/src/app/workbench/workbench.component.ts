@@ -2214,7 +2214,7 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   }
 
   public importFileSucceed() {
-    this.detailWorkbenchDatabase.getDatabase();
+    this.detailWorkbenchDatabase.refreshDatabases();
   }
 
   public createDatasourceComplete() {
@@ -2459,7 +2459,7 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   }
 
   public saveAsHiveTableSucceed() {
-    this.detailWorkbenchDatabase.getDatabase();
+    this.detailWorkbenchDatabase.refreshDatabases();
   }
 
   private _toggleHorizontalSlider() {

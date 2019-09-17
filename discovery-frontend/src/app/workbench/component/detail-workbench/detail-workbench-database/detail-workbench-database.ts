@@ -193,6 +193,10 @@ export class DetailWorkbenchDatabaseComponent extends AbstractWorkbenchComponent
     );
   }
 
+  public refreshDatabases(): void {
+    this._getDatabaseList(this.params.dataconnection.id);
+  }
+
   private _getDatabaseList(connectionId: string): void {
     // 호출 횟수 증가
     this._getDatabaseListReconnectCount++;
