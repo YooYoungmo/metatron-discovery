@@ -17,6 +17,7 @@ package app.metatron.discovery.domain.auth;
 import app.metatron.discovery.common.GlobalObjectMapper;
 import app.metatron.discovery.common.StatLogger;
 import app.metatron.discovery.common.exception.BadRequestException;
+import app.metatron.discovery.common.MetatronProperties;
 import app.metatron.discovery.common.exception.MetatronException;
 import app.metatron.discovery.common.oauth.BasicTokenExtractor;
 import app.metatron.discovery.common.oauth.CookieManager;
@@ -119,6 +120,9 @@ public class AuthenticationController {
 
   @Autowired
   WorkspaceService workspaceService;
+
+  @Autowired
+  MetatronProperties metatronProperties;
 
   @RequestMapping(value = "/auth/{domain}/permissions", method = RequestMethod.GET)
   public ResponseEntity<Object> getPermissions(@PathVariable String domain) {
@@ -587,5 +591,17 @@ public class AuthenticationController {
     } else {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+  }
+
+  @RequestMapping(value = "/auth/login-delegation", method = RequestMethod.GET)
+  public ResponseEntity<Map<String, String>> getLoginDelegationURL() {
+    if(StringUtils.isEmpty(metatronProperties.getLoginDelegationUrl())) {
+      return ResponseEntity.notFound().build();
+    }
+
+    Map<String, String> loginDelegationURL = new HashMap<>();
+    loginDelegationURL.put("url", metatronProperties.getLoginDelegationUrl());
+
+    return ResponseEntity.ok(loginDelegationURL);
   }
 }

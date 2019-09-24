@@ -57,7 +57,29 @@ export class UserService extends AbstractService {
         .then(_response => Promise.resolve(true))
         .catch(error => scope.isLoggedInErrorHandler(scope, error));
     } else {
-      CommonUtil.moveToStartPage(this.router);
+      const apiURL = this.API_URL + 'auth/login-delegation';
+      const currentURL = location.href;
+      this.http.get(apiURL)
+        .toPromise()
+        .then(res => {
+          if(res['url']) {
+            //http://localhost:4200/app/v2/workbook/ec157f05-1122-4d4e-9d41-2905f020702b
+            let existQueryString = false;
+            if(res['url'].indexOf('?') !== -1) {
+              existQueryString = true;
+            }
+
+            const queryString = (existQueryString ? "&" : "?") + "redirectURL=" + encodeURIComponent(currentURL);
+            const loginDelegationURL = res['url'] + queryString;
+            CommonUtil.moveToStartPage( this.router, loginDelegationURL);
+          } else {
+            CommonUtil.moveToStartPage( this.router );
+          }
+        })
+        .catch(error => {
+          CommonUtil.moveToStartPage( this.router );
+        });
+
       return Promise.resolve(false);
     }
   }
