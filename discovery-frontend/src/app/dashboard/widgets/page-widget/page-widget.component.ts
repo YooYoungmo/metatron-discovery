@@ -172,6 +172,8 @@ export class PageWidgetComponent extends AbstractWidgetComponent<PageWidget>
   // 툴팁 div 위치
   public toolTipLoc: boolean = false;
 
+  public showAllColumns: boolean = false;
+
   get uiOption(): UIOption {
     return this.widgetConfiguration.chart;
   }
@@ -1044,7 +1046,26 @@ export class PageWidgetComponent extends AbstractWidgetComponent<PageWidget>
     // } else {
     //   this._dataDownComp.openWidgetDown(event, this.widget.id, this.isOriginDown, this.query);
     // }
-    this._dataDownComp.openGridDown(event, this._dataGridComp);
+//     this._dataDownComp.openGridDown(event, this._dataGridComp);
+
+    if (ConnectionType.LINK === ConnectionType[this.widget.configuration.dataSource.connType]) {
+          this._dataDownComp.openGridDown(event, this._dataGridComp);
+        } else {
+          if(this.showAllColumns) {
+            let params: QueryParam = this.makeDataSourceQueryParams();
+            params.metaQuery = true;
+
+            this.datasourceService.getDatasourceQuery(params).then(metaData => {
+              const downloadPreview: PreviewResult = new PreviewResult(metaData.estimatedSize, metaData.totalCount);
+              params.metaQuery = false;
+              const dataSource: Datasource = this.findDataSourceUsedChart();
+              this._dataDownComp.openDataDown(event, dataSource.fields, null, downloadPreview, params);
+            }).catch((err) => {
+            });
+          } else {
+            this._dataDownComp.openWidgetDown(event, this.widget.id, this.isOriginDown);
+          }
+        }
   } // function - showDownloadLayer
 
   /**
@@ -1057,10 +1078,14 @@ export class PageWidgetComponent extends AbstractWidgetComponent<PageWidget>
     this.isCanNotDownAggr = false;
 
     let fields = [];
-    const clonePivot: Pivot = _.cloneDeep(this.widgetConfiguration.pivot);
-    (clonePivot.rows) && (fields = fields.concat(clonePivot.rows));
-    (clonePivot.columns) && (fields = fields.concat(clonePivot.columns));
-    (clonePivot.aggregations) && (fields = fields.concat(clonePivot.aggregations));
+    if(isOriginal && this.showAllColumns) {
+      fields = this.findDataSourceUsedChart().fields ? this.findDataSourceUsedChart().fields : [];
+    } else {
+      const clonePivot: Pivot = _.cloneDeep(this.widgetConfiguration.pivot);
+      (clonePivot.rows) && (fields = fields.concat(clonePivot.rows));
+      (clonePivot.columns) && (fields = fields.concat(clonePivot.columns));
+      (clonePivot.aggregations) && (fields = fields.concat(clonePivot.aggregations));
+    }
 
     if (isOriginal && fields.some((field: Field) => (field['field'] && field['field'].aggregated))) {
       this.isCanNotDownAggr = true;
@@ -1155,14 +1180,26 @@ export class PageWidgetComponent extends AbstractWidgetComponent<PageWidget>
           this.safelyDetectChanges();
         });
     } else {
-      this.widgetService.previewWidget(this.widget.id, isOriginal, false, param)
-        .then(result => renderGrid(result))
-        .catch((err) => {
-          console.error(err);
-          this.loadingHide();
-          // 변경 적용
-          this.safelyDetectChanges();
-        });
+      if(isOriginal && this.showAllColumns) {
+        const params : QueryParam = this.makeDataSourceQueryParams();
+        this.datasourceService.getDatasourceQuery(params)
+          .then(result => renderGrid(result))
+          .catch((err) => {
+            console.error(err);
+            this.loadingHide();
+            // 변경 적용
+            this.safelyDetectChanges();
+          });
+      } else {
+        this.widgetService.previewWidget(this.widget.id, isOriginal, false, param)
+          .then(result => renderGrid(result))
+          .catch((err) => {
+            console.error(err);
+            this.loadingHide();
+            // 변경 적용
+            this.safelyDetectChanges();
+          });
+      }
     }
   } // function - drawDataGrid
 
@@ -1876,4 +1913,34 @@ export class PageWidgetComponent extends AbstractWidgetComponent<PageWidget>
     }
   }
 
+  private findAllFieldInChartDataSource() : Field[] {
+    const findDataSources : Datasource[] = this.widget.dashBoard.dataSources.filter(ds => ds.id === this.widget.configuration.dataSource.id);
+    if(findDataSources && findDataSources.length === 1) {
+      return findDataSources[0].fields;
+    } else {
+      return [];
+    }
+  }
+
+  private findDataSourceUsedChart() : Datasource {
+    const findDataSources : Datasource[] = this.widget.dashBoard.dataSources.filter(ds => ds.id === this.widget.configuration.dataSource.id);
+    if(findDataSources && findDataSources.length === 1) {
+      return findDataSources[0];
+    } else {
+      return null;
+    }
+  }
+
+  private makeDataSourceQueryParams() : QueryParam {
+    let params = new QueryParam();
+    params.limits.limit = 1000000;
+    params.dataSource.name = this.widget.configuration.dataSource.name;
+    params.dataSource.engineName = this.widget.configuration.dataSource.engineName;
+    params.dataSource.connType = this.widget.configuration.dataSource.connType;
+    params.dataSource.type = this.widget.configuration.dataSource.type;
+    params.filters = this.query.getDownloadFilters();
+    params.preview = false;
+
+    return params;
+  }
 }
