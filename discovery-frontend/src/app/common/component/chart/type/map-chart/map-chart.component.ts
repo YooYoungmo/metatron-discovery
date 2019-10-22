@@ -71,6 +71,7 @@ import {StringUtil} from '@common/util/string.util';
 import proj4 from 'proj4';
 import * as ol from 'openlayers';
 // declare let ol;
+import {StringUtil} from "../../../../util/string.util";
 
 @Component({
   selector: 'map-chart',
