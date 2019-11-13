@@ -55,9 +55,9 @@ public class HiveDataAccessor extends AbstractJdbcDataAccessor {
     if(StringUtils.isNotEmpty(loginUserId)
         && HiveDialect.isSupportSaveAsHiveTable(connectionInfo)
         && AuthUtils.getPermissions().contains("PERM_SYSTEM_MANAGE_SYSTEM") == false) {
-      databaseNames = filterOtherPersonalDatabases(databaseNames,
-          connectionInfo.getPropertiesMap().get(HiveDialect.PROPERTY_KEY_PERSONAL_DATABASE_PREFIX),
-          HiveNamingRule.replaceNotAllowedCharacters(loginUserId));
+      //filter personal database
+      databaseNames
+          = filterOtherPersonalDatabases(databaseNames, loginUserId);
     }
 
     int databaseCount = databaseNames.size();

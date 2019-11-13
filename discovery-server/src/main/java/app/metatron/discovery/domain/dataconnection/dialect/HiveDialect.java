@@ -456,11 +456,13 @@ public class HiveDialect implements JdbcDialect {
   public static boolean isOwnPersonalDatabase(JdbcConnectInformation connectionInfo, String userName, String database) {
     if(isSupportPersonalDatabase(connectionInfo)) {
       Map<String, String> propMap = connectionInfo.getPropertiesMap();
-      if(propMap == null){
-        return false;
-      }
 
-      if(database.toUpperCase().startsWith(propMap.get(PROPERTY_KEY_PERSONAL_DATABASE_PREFIX).toUpperCase()) &&
+      ConnectionConfigProperties connectionConfigProperties = ApplicationContextProvider.getApplicationContext().getBean(ConnectionConfigProperties.class);
+      Map<String, String> findProperties = connectionConfigProperties.findPropertyGroupByName(propMap.getOrDefault(PROPERTY_KEY_PROPERTY_GROUP_NAME, ""));
+      HivePersonalDatasource hivePersonalDatasource = new HivePersonalDatasource(findProperties);
+
+
+      if(database.toUpperCase().startsWith(hivePersonalDatasource.getPersonalDatabasePrefix().toUpperCase()) &&
           database.toUpperCase().endsWith(HiveNamingRule.replaceNotAllowedCharacters(userName).toUpperCase())) {
         return true;
       } else {
