@@ -461,7 +461,6 @@ public class HiveDialect implements JdbcDialect {
       Map<String, String> findProperties = connectionConfigProperties.findPropertyGroupByName(propMap.getOrDefault(PROPERTY_KEY_PROPERTY_GROUP_NAME, ""));
       HivePersonalDatasource hivePersonalDatasource = new HivePersonalDatasource(findProperties);
 
-
       if(database.toUpperCase().startsWith(hivePersonalDatasource.getPersonalDatabasePrefix().toUpperCase()) &&
           database.toUpperCase().endsWith(HiveNamingRule.replaceNotAllowedCharacters(userName).toUpperCase())) {
         return true;
@@ -471,5 +470,27 @@ public class HiveDialect implements JdbcDialect {
     } else {
       return false;
     }
+  }
+
+  public static Map<String, Object> getHivePersonalDatasourceInformation(JdbcConnectInformation connectionInfo) {
+    Map<String, Object> hivePersonalDatasourceInfo = new HashMap<>();
+
+    if(isSupportPersonalDatabase(connectionInfo)) {
+      hivePersonalDatasourceInfo.put("supportPersonalDatabase", true);
+
+      Map<String, String> propMap = connectionInfo.getPropertiesMap();
+      ConnectionConfigProperties connectionConfigProperties = ApplicationContextProvider.getApplicationContext().getBean(ConnectionConfigProperties.class);
+      Map<String, String> findProperties = connectionConfigProperties.findPropertyGroupByName(propMap.getOrDefault(PROPERTY_KEY_PROPERTY_GROUP_NAME, ""));
+      HivePersonalDatasource hivePersonalDatasource = new HivePersonalDatasource(findProperties);
+
+      hivePersonalDatasourceInfo.put("ownPersonalDatabaseName", String.format("%s_%s", hivePersonalDatasource.getPersonalDatabasePrefix(), HiveNamingRule.replaceNotAllowedCharacters(AuthUtils.getAuthUserName())));
+      hivePersonalDatasourceInfo.put("personalDatabasePrefix", hivePersonalDatasource.getPersonalDatabasePrefix());
+    } else {
+      hivePersonalDatasourceInfo.put("supportPersonalDatabase", false);
+      hivePersonalDatasourceInfo.put("ownPersonalDatabaseName", "");
+      hivePersonalDatasourceInfo.put("personalDatabasePrefix", "");
+    }
+
+    return hivePersonalDatasourceInfo;
   }
 }

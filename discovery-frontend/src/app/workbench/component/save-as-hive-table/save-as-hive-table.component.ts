@@ -100,7 +100,7 @@ export class SaveAsHiveTableComponent extends AbstractComponent implements OnIni
       const params = {
         type: 'csv',
         importType: ImportType.NEW,
-        databaseName: getPersonalDatabaseName(this.dataConnection),
+        databaseName: this.dataConnection.hivePersonalDatasourceInformation['ownPersonalDatabaseName'],
         tableName: this.tableName.trim(),
         firstRowHeadColumnUsed: true,
         filePath: this.csvFilePath,
