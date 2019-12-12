@@ -33,6 +33,8 @@ import {SaveAsHiveTableComponent} from './component/save-as-hive-table/save-as-h
 import {DataSourceCreateModule} from '../data-storage/data-source-list/create-data-source/data-source-create.module';
 import {FileModule} from "../common/file.module";
 import {ImportFileComponent} from "./component/import-file/import-file.component";
+import {DataSourceCreateModule} from "../data-storage/data-source-list/create-data-source/data-source-create.module";
+import {HivePersonalDatabaseService} from "../plugins/hive-personal-database/service/plugins.hive-personal-database.service";
 
 // 라우트
 const workbenchRoutes: Routes = [
@@ -66,7 +68,8 @@ const workbenchRoutes: Routes = [
     StompService,
     DataconnectionService,
     AnalysisPredictionService,
-    MetadataService
+    MetadataService,
+    HivePersonalDatabaseService
   ]
 })
 export class WorkbenchModule {
