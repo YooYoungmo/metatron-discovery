@@ -65,13 +65,12 @@ export class SaveAsHiveTableComponent extends AbstractComponent implements OnIni
     super.ngOnDestroy();
   }
 
-  public init(workbenchId: string, csvFilePath: string, webSocketId: string, dataConnection: Dataconnection) {
+  public init(workbenchId: string, csvFilePath: string, webSocketId: string) {
     this.isShow = true;
     this.tableName = '';
     this.workbenchId = workbenchId;
     this.csvFilePath = csvFilePath;
     this.webSocketId = webSocketId;
-    this.dataConnection = dataConnection;
   }
 
   // 닫기
@@ -87,7 +86,7 @@ export class SaveAsHiveTableComponent extends AbstractComponent implements OnIni
     } else {
       if (StringUtil.isAlphaNumericUnderscore(this.tableName) === false) {
         this.isInvalidTableName = true;
-        this.errMsgTableName = this.translateService.instant('msg.bench.alert.invalid-hive-name-rule', {value: 'Table'});
+        this.errMsgTableName = this.translateService.instant('msg.bench.alert.invalid-hive-table-name');
         return false;
       }
     }
@@ -99,11 +98,9 @@ export class SaveAsHiveTableComponent extends AbstractComponent implements OnIni
     if (this.validation()) {
       const params = {
         type: 'csv',
-        importType: ImportType.NEW,
-        databaseName: this.dataConnection.hivePersonalDatasourceInformation['ownPersonalDatabaseName'],
         tableName: this.tableName.trim(),
         firstRowHeadColumnUsed: true,
-        filePath: this.csvFilePath,
+        uploadedFile: this.csvFilePath,
         loginUserId: CommonUtil.getLoginUserId(),
         webSocketId: this.webSocketId
       };

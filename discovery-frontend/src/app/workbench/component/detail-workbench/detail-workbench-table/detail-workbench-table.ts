@@ -239,6 +239,7 @@ export class DetailWorkbenchTableComponent extends AbstractWorkbenchComponent im
 
   // 데이터 베이스 리스트 가져오기
   public getTables() {
+
     // sort 초기화
     this.tableSortType = 'DEFAULT';
     // 테이블 갯수 초기화
@@ -492,45 +493,18 @@ export class DetailWorkbenchTableComponent extends AbstractWorkbenchComponent im
   }
 
   public openModalDeleteTableInPersonalDatabase(item) {
-    const modal = new Modal();
-    modal.name = this.translateService.instant('msg.bench.ui.delete.table.title');
-    modal.description = this.translateService.instant('msg.bench.ui.delete.table.description', {value: item});
-    modal.data = {
-      webSocketId: this.webSocketId,
-      dataConnectionId: this.dataConnectionId,
-      database: this.database,
-      table: item
-    };
-
-    this.deleteHiveTableModalComponent.init(modal);
-  }
-
-  public openModalRenameTableInPersonalDatabase(item) {
-    this.renameTable = item;
-    this.showRenameTableModal = true;
-  }
-
-  public deleteTableInPersonalDatabase() {
-    const data = this.deleteHiveTableModalComponent.modal.data;
-    this.loadingShow();
-    this.dataconnectionService.deleteTable(data.dataConnectionId, data.database, data.table, data.webSocketId)
-      .then((response) => {
-        this.loadingHide();
-        Alert.success(this.translateService.instant('msg.comm.alert.delete.success'));
-        this.getTables();
-      }).catch((error) => {
-      this.loadingHide();
-      console.log(error);
-      Alert.error(this.translateService.instant('msg.comm.alert.delete.fail'));
+    this.broadCaster.broadcast('SHOW_HIVE_PERSONAL_DATABASE_DELETE_TABLE_MODAL', {
+      selectedTable: item
     });
   }
 
-  public renameTableSucceed() {
-    this.getTables();
+  public openModalRenameTableInPersonalDatabase(item) {
+    this.broadCaster.broadcast('SHOW_HIVE_PERSONAL_DATABASE_RENAME_TABLE_MODAL', {
+      selectedTable: item
+    });
   }
 
   public openModalCreateTableInPersonalDatabase() {
-    this.showCreationTableModal = true;
     this.broadCaster.broadcast('SHOW_HIVE_PERSONAL_DATABASE_CREATION_TABLE_MODAL');
   }
 
