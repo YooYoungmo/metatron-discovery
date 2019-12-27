@@ -38,7 +38,7 @@ import javax.sql.DataSource;
 @Configuration
 @EnableTransactionManagement
 @EnableAspectJAutoProxy
-@EnableJpaRepositories(basePackages = {"app.metatron.discovery.domain"}
+@EnableJpaRepositories(basePackages = {"app.metatron.discovery.domain", "app.metatron.discovery.plugins"}
     , repositoryFactoryBeanClass = CustomEnversRevisionRepositoryFactoryBean.class
 )
 @EnableEntityLinks
@@ -62,7 +62,7 @@ public class MainApplicationConfig {
       DataSource dataSource) {
     return builder
         .dataSource(dataSource)
-        .packages("app.metatron.discovery.domain")
+        .packages("app.metatron.discovery.domain", "app.metatron.discovery.plugins")
         .build();
   }
 
