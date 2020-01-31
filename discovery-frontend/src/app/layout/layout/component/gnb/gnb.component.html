@@ -83,6 +83,7 @@
             </span>
           </a>
           <div class="ddp-theme-check">
+
             <label class="theme-check ">
               <input type="checkbox" [checked]="!isThemeDark()">
               <i (click)="themeCheckboxClick(constTheme.WHITE);$event.preventDefault();"></i>
@@ -94,7 +95,7 @@
           </div>
         </li>
       </ul>
-      <div class="ddp-ui-part"><a href="javascript:" (click)="logout();">{{'msg.comm.menu.logout' | translate}}</a></div>
+      <div class="ddp-ui-part"><a href="javascript:" (click)="logout();" style="cursor: no-drop;color: #9c9c9c;">{{'msg.comm.menu.logout' | translate}}</a></div>
     </div>
     <!-- //my info -->
   </div>
