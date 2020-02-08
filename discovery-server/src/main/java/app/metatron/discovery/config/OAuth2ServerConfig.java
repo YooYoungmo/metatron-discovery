@@ -17,6 +17,7 @@ package app.metatron.discovery.config;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import app.metatron.discovery.common.MetatronProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowire;
@@ -259,6 +260,9 @@ public class OAuth2ServerConfig {
     @Autowired
     CustomDaoAuthenticationProvider customAuthProvider;
 
+    @Autowired
+    private MetatronProperties metatronProperties;
+
     //@Autowired
     //private AuthorizationEndpoint authorizationEndpoint;
 
@@ -300,6 +304,13 @@ public class OAuth2ServerConfig {
       defaultTokenServices.setTokenEnhancer(accessTokenConverter());
       defaultTokenServices.setSupportRefreshToken(true);
       defaultTokenServices.setClientDetailsService(jdbcClientDetailsService());
+
+      // accessToken, refreshToken time 설정
+      if(metatronProperties.getJwtExpirationSeconds() > 0) {
+        defaultTokenServices.setAccessTokenValiditySeconds(metatronProperties.getJwtExpirationSeconds());
+        defaultTokenServices.setRefreshTokenValiditySeconds(metatronProperties.getJwtExpirationSeconds());
+      }
+      //defaultTokenServices.setClientDetailsService(jdbcClientDetailsService());
       return defaultTokenServices;
     }
 
