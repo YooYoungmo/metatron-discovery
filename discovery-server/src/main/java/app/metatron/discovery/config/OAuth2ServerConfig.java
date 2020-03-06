@@ -261,9 +261,6 @@ public class OAuth2ServerConfig {
     @Autowired
     CustomDaoAuthenticationProvider customAuthProvider;
 
-    @Autowired
-    private IdCubeProperties idCubeProperties;
-
     //@Autowired
     //private AuthorizationEndpoint authorizationEndpoint;
 
@@ -307,10 +304,6 @@ public class OAuth2ServerConfig {
       defaultTokenServices.setClientDetailsService(jdbcClientDetailsService());
 
       // accessToken, refreshToken time 설정
-      if(idCubeProperties.getAuth().getSessionTimeoutSeconds() > 0) {
-        defaultTokenServices.setAccessTokenValiditySeconds(idCubeProperties.getAuth().getSessionTimeoutSeconds());
-        defaultTokenServices.setRefreshTokenValiditySeconds(idCubeProperties.getAuth().getSessionTimeoutSeconds());
-      }
       //defaultTokenServices.setClientDetailsService(jdbcClientDetailsService());
       return defaultTokenServices;
     }

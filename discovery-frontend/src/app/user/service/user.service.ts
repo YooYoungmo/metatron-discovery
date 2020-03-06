@@ -82,6 +82,12 @@ export class UserService extends AbstractService {
       .toPromise();
   }
 
+  public getLoginSessionIdleTime(): Promise<any> {
+    const apiURL = this.API_URL + 'auth/login-session-idle-timeout';
+    return this.http.get(apiURL)
+      .toPromise();
+  }
+
   public isLoginRedirect() {
     const currentURL = location.href;
     return currentURL.indexOf("redirect=false") == -1 ? true : false;
@@ -228,4 +234,17 @@ export class UserService extends AbstractService {
     return this.getWithoutToken(this.API_URL + `oauth/${clientId}`);
   }
 
+  public logout() {
+    if( CommonUtil.isSamlSSO() ) {
+      location.href = '/saml/logout';
+    } else {
+      this.cookieService.delete(CookieConstant.KEY.LOGIN_TOKEN, '/');
+      this.cookieService.delete(CookieConstant.KEY.LOGIN_TOKEN_TYPE, '/');
+      this.cookieService.delete(CookieConstant.KEY.LOGIN_USER_ID, '/');
+      this.cookieService.delete(CookieConstant.KEY.REFRESH_LOGIN_TOKEN, '/');
+      this.cookieService.delete(CookieConstant.KEY.CURRENT_WORKSPACE, '/');
+      this.cookieService.delete(CookieConstant.KEY.MY_WORKSPACE, '/');
+      this.cookieService.delete(CookieConstant.KEY.PERMISSION, '/');
+    }
+  }
 }

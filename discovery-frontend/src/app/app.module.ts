@@ -31,6 +31,8 @@ import {UserService} from './user/service/user.service';
 import {CookieService} from 'ng2-cookies';
 import {ClipboardModule} from 'ngx-clipboard';
 import {LoaderInterceptor} from '@common/interceptor/loader-interceptor';
+import { BnNgIdleService } from 'bn-ng-idle';
+import {LoginComponent} from "./user/login/login.component";
 
 // 다국어 파일 경로 지정
 export function createTranslateLoader(http: HttpClient) {
@@ -77,7 +79,9 @@ const appRoutes: Routes = [
     CookieService,
     CanDeactivateGuard,
     UnloadConfirmService,
-    EventBroadcaster
+    EventBroadcaster,
+    BnNgIdleService,
+    LoginComponent
   ],
   bootstrap: [AppComponent],
 })

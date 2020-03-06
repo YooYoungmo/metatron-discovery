@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-import {AfterContentChecked, ChangeDetectorRef, Component, Injector} from '@angular/core';
+import {AfterContentChecked, ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {
   Event as RouterEvent,
@@ -23,17 +23,20 @@ import {
   Router
 } from '@angular/router';
 
+import {BnNgIdleService} from 'bn-ng-idle';
+
 import * as _ from 'lodash';
 import {EventBroadcaster} from '@common/event/event.broadcaster';
 import {UserSetting} from '@common/value/user.setting.value';
 import {CommonUtil} from '@common/util/common.util';
+import {UserService} from "./user/service/user.service";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent implements AfterContentChecked {
+export class AppComponent implements AfterContentChecked, OnInit {
 
   public isLoggedIn:boolean = false;
   public routerLoading: boolean = false;
@@ -44,7 +47,9 @@ export class AppComponent implements AfterContentChecked {
   constructor(private translateService: TranslateService,
               private broadCaster: EventBroadcaster,
               private router: Router,
-              protected injector: Injector) {
+              protected injector: Injector,
+              private bnIdle: BnNgIdleService,
+              private userService: UserService) {
 
     this.changeDetect = injector.get(ChangeDetectorRef);
 
@@ -94,6 +99,19 @@ export class AppComponent implements AfterContentChecked {
 
   ngAfterContentChecked(): void {
     this.changeDetect.detectChanges();
+  }
+
+  public ngOnInit() {
+    this.userService.getLoginSessionIdleTime().then(res => {
+      if(res['timeout'] && res['timeout'] > 0) {
+        const idleTimeout = res['timeout'];
+        this.bnIdle.startWatching(idleTimeout).subscribe((res: boolean) => {
+          if (res) {
+            this.userService.logout();
+          }
+        });
+      }
+    }).catch(error => {});
   }
 
   // Shows and hides the loading spinner during RouterEvent changes
