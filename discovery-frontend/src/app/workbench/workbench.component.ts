@@ -64,6 +64,10 @@ import {CreationDataAggregateTaskComponent} from "../plugins/hive-personal-datab
 import {CompleteDataAggregateTaskComponent} from "../plugins/hive-personal-database/component/data-aggregate/complete-data-aggregate-task/complete-data-aggregate-task.component";
 import {DataAggregate} from "../plugins/hive-personal-database/component/data-aggregate/data-aggregate.component";
 import {DetailsDataAggregateTaskComponent} from "../plugins/hive-personal-database/component/data-aggregate/details-data-aggregate-task/details-data-aggregate-task.component";
+import {
+  DataEncryptionDecryptionComponent,
+  DataSet
+} from './component/data-encryption-decryption/data-encryption-decryption.component';
 
 declare let moment: any;
 declare let Split;
@@ -314,7 +318,8 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
 
   public hideResultButtons: boolean = false;
 
-  public importFile: boolean = false;
+  public dataEncryptionDecryptionStep: string = "";
+  public dataEncryptionDecryptionDataSet: DataSet;
 
   private _cancelTimer;
   public isCancelAvailable: boolean = false;
@@ -1505,6 +1510,18 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   }
 
   private _loadInitData(connectWebSocket: () => void) {
+  public showDataEncryptionDecryption(): void {
+    const dataGrid = this._getCurrentResultTab();
+    // TODO 그리드 데이터 확인...
+    this.dataEncryptionDecryptionDataSet = new DataSet(dataGrid.result.csvFilePath, dataGrid.result.data, dataGrid.result.fields);
+    this.dataEncryptionDecryptionStep = "identity-verification";
+  }
+
+  public closeDataEncryptionDecryption(): void {
+    this.dataEncryptionDecryptionStep = "";
+  }
+
+  private _loadInitData(connectWebSocket: Function) {
     this.workbenchService.getWorkbench(this.workbenchId).then((data) => {
       if (data.valid) {
         WorkbenchService.workbench = data;
