@@ -320,6 +320,7 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
 
   public dataEncryptionDecryptionStep: string = "";
   public dataEncryptionDecryptionDataSet: DataSet;
+  public dataEncryptionDecryptionQueryEditorId: string = "";
 
   private _cancelTimer;
   public isCancelAvailable: boolean = false;
@@ -1512,8 +1513,9 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   private _loadInitData(connectWebSocket: () => void) {
   public showDataEncryptionDecryption(): void {
     const dataGrid = this._getCurrentResultTab();
-    // TODO 그리드 데이터 확인...
     this.dataEncryptionDecryptionDataSet = new DataSet(dataGrid.result.csvFilePath, dataGrid.result.data, dataGrid.result.fields);
+    console.log('showDataEncryptionDecryption', dataGrid);
+    this.dataEncryptionDecryptionQueryEditorId = dataGrid.editorId;
     this.dataEncryptionDecryptionStep = "identity-verification";
   }
 
