@@ -514,6 +514,18 @@
 
                     <!-- Result Search -->
                     <div [class.type-opacity]="hideResultButtons" class="ddp-wrap-btn-link">
+                      <!-- 데이터 암/복호화 -->
+                      <div [hidden]="visibleResultTab.message" class="ddp-ui-link" >
+                        <a (click)="showDataEncryptionDecryption()" href="javascript:" class="ddp-btn-link" >
+                          <em class="ddp-icon-key"></em>
+                          <div class="ddp-ui-tooltip-info">
+                            <em class="ddp-icon-view-down"></em>
+                            데이터 암/복호화
+                          </div>
+                        </a>
+                      </div>
+                      <!-- // 데이터 암/복호화 -->
+
                       <!-- search link -->
                       <a (click)="toggleResultSearchLayer($event)"
                          [ngClass]="{'ddp-selected':isSearchLink, 'ddp-value': searchText.trim() != '' }"
@@ -588,23 +600,9 @@
                         </a>
                       </div>
                       <!-- // Download Data -->
-
-                      <!-- 데이터 암/복호화 -->
-                      <div [hidden]="visibleResultTab.message" class="ddp-ui-link" >
-                        <a (click)="showDataEncryptionDecryption()" href="javascript:" class="ddp-btn-link" >
-                          <em class="ddp-icon-key"></em>
-                          <div class="ddp-ui-tooltip-info">
-                            <em class="ddp-icon-view-down"></em>
-                            데이터 암/복호화
-                          </div>
-                        </a>
-                      </div>
-                      <!-- // 데이터 암/복호화 -->
                     </div>
-
                   </div>
                   <!-- // buttons -->
-
                 </div>
               </div>
               <!-- //결과 -->
