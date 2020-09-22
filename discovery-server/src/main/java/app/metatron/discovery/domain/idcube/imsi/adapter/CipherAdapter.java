@@ -1,4 +1,4 @@
-package app.metatron.discovery.domain.idcube.security.imsi.adapter;
+package app.metatron.discovery.domain.idcube.imsi.adapter;
 
 import app.metatron.discovery.common.exception.MetatronException;
 import app.metatron.discovery.domain.idcube.IdCubeProperties;
