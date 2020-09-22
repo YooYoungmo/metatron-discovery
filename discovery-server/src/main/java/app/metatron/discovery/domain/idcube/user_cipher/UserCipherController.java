@@ -1,4 +1,4 @@
-package app.metatron.discovery.domain.idcube.security;
+package app.metatron.discovery.domain.idcube.user_cipher;
 
 import com.sk.idcube.common.security.AccountInfoSecurity;
 import com.sk.idcube.common.security.IDCubeSecurity;

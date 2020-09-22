@@ -1,4 +1,4 @@
-package app.metatron.discovery.domain.idcube.security.imsi.entity;
+package app.metatron.discovery.domain.idcube.imsi.entity;
 
 import app.metatron.discovery.util.AuthUtils;
 
