@@ -1,20 +1,19 @@
-package app.metatron.discovery.domain.idcube.security.imsi;
+package app.metatron.discovery.domain.idcube.imsi;
 
 import app.metatron.discovery.common.exception.MetatronException;
 import app.metatron.discovery.common.exception.ResourceNotFoundException;
 import app.metatron.discovery.domain.idcube.IdCubeProperties;
-import app.metatron.discovery.domain.idcube.security.imsi.dto.CipherRequest;
-import app.metatron.discovery.domain.idcube.security.imsi.entity.DataDownloadHistory;
-import app.metatron.discovery.domain.idcube.security.imsi.entity.IdentityVerification;
-import app.metatron.discovery.domain.idcube.security.imsi.repository.DataDownloadHistoryRepository;
-import app.metatron.discovery.domain.idcube.security.imsi.repository.IdentityVerificationRepository;
+import app.metatron.discovery.domain.idcube.imsi.dto.CipherRequest;
+import app.metatron.discovery.domain.idcube.imsi.entity.DataDownloadHistory;
+import app.metatron.discovery.domain.idcube.imsi.entity.IdentityVerification;
+import app.metatron.discovery.domain.idcube.imsi.repository.DataDownloadHistoryRepository;
+import app.metatron.discovery.domain.idcube.imsi.repository.IdentityVerificationRepository;
 import app.metatron.discovery.domain.user.User;
 import app.metatron.discovery.domain.user.UserRepository;
 import app.metatron.discovery.domain.workbench.QueryEditor;
 import app.metatron.discovery.domain.workbench.QueryEditorRepository;
 import app.metatron.discovery.domain.workbench.QueryEditorResult;
 import app.metatron.discovery.domain.workbench.WorkbenchProperties;
-import app.metatron.discovery.domain.workspace.BookAuditLogService;
 import app.metatron.discovery.util.AuthUtils;
 import app.metatron.discovery.util.HttpUtils;
 import org.slf4j.Logger;

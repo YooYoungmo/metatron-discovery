@@ -55,6 +55,7 @@ public class IdCubeProperties {
       private String apiKey;
       private String senderCellPhoneNo;
       private String senderName;
+      private String smsPrefix = "";
 
       public String getApiUrl() {
         return apiUrl;
@@ -86,6 +87,14 @@ public class IdCubeProperties {
 
       public void setSenderName(String senderName) {
         this.senderName = senderName;
+      }
+
+      public String getSmsPrefix() {
+        return smsPrefix;
+      }
+
+      public void setSmsPrefix(String smsPrefix) {
+        this.smsPrefix = smsPrefix;
       }
     }
 

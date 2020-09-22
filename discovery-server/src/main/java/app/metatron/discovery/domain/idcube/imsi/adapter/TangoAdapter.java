@@ -1,4 +1,4 @@
-package app.metatron.discovery.domain.idcube.security.imsi.adapter;
+package app.metatron.discovery.domain.idcube.imsi.adapter;
 
 import app.metatron.discovery.common.exception.MetatronException;
 import app.metatron.discovery.domain.idcube.IdCubeProperties;
@@ -53,7 +53,7 @@ public class TangoAdapter {
     receiver.put("msgRcprNm", receiverName);
     receiverList.add(receiver);
     entity.getBody().put("rcprList", receiverList);
-    entity.getBody().put("ogMsgCttc", contents);
+    entity.getBody().put("ogMsgCttc", idCubeProperties.getImsi().getSmsServer().getSmsPrefix() + contents);
 
     final String url = idCubeProperties.getImsi().getSmsServer().getApiUrl() + "/common/business/modules/sms";
     RestTemplate restTemplate = new RestTemplate();

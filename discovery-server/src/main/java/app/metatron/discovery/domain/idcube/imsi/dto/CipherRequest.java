@@ -1,4 +1,4 @@
-package app.metatron.discovery.domain.idcube.security.imsi.dto;
+package app.metatron.discovery.domain.idcube.imsi.dto;
 
 import app.metatron.discovery.domain.datasource.Field;
 

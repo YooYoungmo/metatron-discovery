@@ -1,8 +1,8 @@
-package app.metatron.discovery.domain.idcube.security.imsi.entity;
+package app.metatron.discovery.domain.idcube.imsi.entity;
 
 import app.metatron.discovery.common.exception.MetatronException;
 import app.metatron.discovery.domain.idcube.IdCubeErrorCodes;
-import app.metatron.discovery.domain.idcube.security.imsi.adapter.TangoAdapter;
+import app.metatron.discovery.domain.idcube.imsi.adapter.TangoAdapter;
 import app.metatron.discovery.util.ApplicationContextProvider;
 import org.apache.commons.lang.StringUtils;
 
