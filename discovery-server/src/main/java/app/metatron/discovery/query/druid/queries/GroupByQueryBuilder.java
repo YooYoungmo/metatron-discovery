@@ -134,9 +134,7 @@ import static app.metatron.discovery.domain.workbook.configurations.Sort.Directi
 import static app.metatron.discovery.domain.workbook.configurations.Sort.Direction.DESC;
 import static app.metatron.discovery.domain.workbook.configurations.field.Field.FIELD_NAMESPACE_SEP;
 import static app.metatron.discovery.domain.workbook.configurations.filter.MeasurePositionFilter.PositionType.BOTTOM;
-import static app.metatron.discovery.domain.workbook.configurations.filter.WildCardFilter.ContainsType.AFTER;
-import static app.metatron.discovery.domain.workbook.configurations.filter.WildCardFilter.ContainsType.BEFORE;
-import static app.metatron.discovery.domain.workbook.configurations.filter.WildCardFilter.ContainsType.BOTH;
+import static app.metatron.discovery.domain.workbook.configurations.filter.WildCardFilter.ContainsType.*;
 import static app.metatron.discovery.query.druid.Query.RESERVED_WORD_COUNT;
 
 /**
@@ -568,20 +566,22 @@ public class GroupByQueryBuilder extends AbstractQueryBuilder {
       } else if (filter instanceof WildCardFilter) {          // Convert LikeFilter
         WildCardFilter wildCardFilter = (WildCardFilter) filter;
 
-        // Add escape character, if exist special character.
-        String likeExpr = StringUtils.replaceEach(wildCardFilter.getValue(),
-                new String[]{"\\", "_", "%"},
-                new String[]{"\\\\", "\\_", "\\%"});
-
-        if (wildCardFilter.getContains() == BEFORE) {
-          likeExpr = "%" + likeExpr;
-        } else if (wildCardFilter.getContains() == AFTER) {
-          likeExpr = likeExpr + "%";
-        } else if (wildCardFilter.getContains() == BOTH) {
-          likeExpr = "%" + likeExpr + "%";
+        if(wildCardFilter.getContains() == EXCEPT) {
+          filters(Lists.newArrayList(new RegExprFilter(filter.getField(), "^((?!" + ((WildCardFilter) filter).getValue() + ").)*$")));
+        } else {
+          // Add escape character, if exist special character.
+          String likeExpr = StringUtils.replaceEach(wildCardFilter.getValue(),
+              new String[]{"\\", "_", "%"},
+              new String[]{"\\\\", "\\_", "\\%"});
+          if (wildCardFilter.getContains() == BEFORE) {
+            likeExpr = "%" + likeExpr;
+          } else if (wildCardFilter.getContains() == AFTER) {
+            likeExpr = likeExpr + "%";
+          } else if (wildCardFilter.getContains() == BOTH) {
+            likeExpr = "%" + likeExpr + "%";
+          }
+          filters(Lists.newArrayList(new LikeFilter(wildCardFilter.getField(), likeExpr, wildCardFilter.getRef())));
         }
-
-        filters(Lists.newArrayList(new LikeFilter(wildCardFilter.getField(), likeExpr, wildCardFilter.getRef())));
       } else if (filter instanceof RegExprFilter) {
         filters(Lists.newArrayList(filter));
       }
