@@ -521,7 +521,9 @@ export class ConfigureFiltersInclusionComponent extends AbstractFilterPopupCompo
     this.targetFilter.preFilters = [this._wildcard, this._regExpr, this._condition, this._limitation];
     this.datasourceService.getCandidateForFilter(this.targetFilter, this._board, [], this._targetField).then(result => {
       this._candidateList = this._candidateList.filter(item => item.isDefinedValue);  // initialize list
-      this._setCandidateResult(result, this.targetFilter, this._targetField);
+      const copyOfTargetFilter = _.cloneDeep(this.targetFilter);
+      copyOfTargetFilter.candidateValues = [];
+      this._setCandidateResult(result, copyOfTargetFilter, this._targetField);
       this.safelyDetectChanges();
       this.loadingHide();
     });
