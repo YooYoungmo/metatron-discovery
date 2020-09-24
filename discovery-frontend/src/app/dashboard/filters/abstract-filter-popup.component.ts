@@ -91,9 +91,12 @@ export class AbstractFilterPopupComponent extends AbstractPopupComponent impleme
     {
       name: this.translateService.instant('msg.board.filter.ui.wildcard.both'), value: 'BOTH',
       description: this.translateService.instant('msg.board.filter.ui.wildcard.both.des')
+    },
+    {
+      name: this.translateService.instant('msg.board.filter.ui.wildcard.except'), value: 'EXCEPT',
+      description: this.translateService.instant('msg.board.filter.ui.wildcard.except.des')
     }
   ];
-
 
   // 대시보드 필드
   public fields: Field[] = [];

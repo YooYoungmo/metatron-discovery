@@ -80,6 +80,6 @@ public class WildCardFilter extends AdvancedFilter {
    * 포함 조건 타입 정의
    */
   public enum ContainsType {
-    BEFORE, AFTER, BOTH
+    BEFORE, AFTER, BOTH, EXCEPT
   }
 }
