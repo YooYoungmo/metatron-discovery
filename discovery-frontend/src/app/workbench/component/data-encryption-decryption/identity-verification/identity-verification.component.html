@@ -41,8 +41,19 @@
           <input type="text" class="ddp-input-type" [(ngModel)]="receivedAuthNumber" placeholder="인증번호"/>
           <a href="javascript:" class="ddp-btn-selection ddp-line" (click)="verifyAuthNumber()">인증번호 확인</a>
         </div>
-        <div>
-          인증번호를 받으신 후 3분 내에 인증번호를 입력해주세요.
+        <div *ngIf="!verified">
+          <span *ngIf="!timeElapsed">인증번호를 받으신 후 3분 내에 인증번호를 입력해주세요.</span>
+          <span *ngIf="timeElapsed && (timeElapsed.minutes > 0 || timeElapsed.seconds > 0)">
+            인증번호 입력까지 &nbsp;
+            <span *ngIf="timeElapsed.minutes > 0" style="color: red;">
+              {{timeElapsed.minutes}} 분 &nbsp;
+            </span>
+            <span *ngIf="timeElapsed.seconds > 0" style="color: red;">
+              {{timeElapsed.seconds}} 초 &nbsp;
+            </span>
+            남았습니다.
+          </span>
+          <span *ngIf="timeElapsed && timeElapsed.seconds <= 0 && timeElapsed.minutes <= 0">인증 번호 입력 시간이 지났습니다. 다시 인증번호를 전송해 주세요.</span>
         </div>
       </div>
     </div>
