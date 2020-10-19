@@ -20,6 +20,8 @@ import {DataEncryptionDecryptionService} from '../service/data-encryption-decryt
 import {Alert} from '../../../../common/util/alert.util';
 import {StringUtil} from '../../../../common/util/string.util';
 import {DataEncryptionDecryptionContext} from '../data-encryption-decryption.component';
+import {Subscription, timer} from 'rxjs';
+import {map} from 'rxjs/operators';
 
 @Component({
              selector: 'app-identity-verification',
@@ -53,11 +55,15 @@ export class IdentityVerificationComponent extends AbstractPopupComponent implem
   @Input()
   public context: DataEncryptionDecryptionContext;
 
+  public timeElapsed: TimeElapsed = null;
+
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   | Constructor
   |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
   // 생성자
+  private subscription: Subscription;
+
   constructor(private userService: UserService,
               private dataEncryptionDecryptionService: DataEncryptionDecryptionService,
               protected element: ElementRef,
@@ -76,14 +82,16 @@ export class IdentityVerificationComponent extends AbstractPopupComponent implem
     super.ngOnInit();
     // ui 초기화
     this.initView();
-
   }
 
   // Destory
   public ngOnDestroy() {
-
     // Destory
     super.ngOnDestroy();
+
+    if(this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -105,10 +113,39 @@ export class IdentityVerificationComponent extends AbstractPopupComponent implem
       this.loadingHide();
       this.identityVerificationId = result.identityVerificationId;
       Alert.success("인증번호를 전송 하였습니다.");
+      this.startTimer();
     }).catch(() => {
       this.loadingHide();
       Alert.error("인증번호 전송에 실패 했습니다.");
     });
+  }
+
+  private startTimer() {
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + 3 * 60000);
+    this.subscription = timer(1000, 1000)
+      .pipe(
+        map((x: number) => {
+          const newDate = new Date(startDate.getTime());
+          newDate.setSeconds(newDate.getSeconds() + x);
+          return newDate;
+        })
+      )
+      .subscribe(t => {
+        let totalSeconds = Math.floor((endDate.getTime() - t.getTime()) / 1000);
+        let minutes = 0;
+        let seconds = 0;
+        if (totalSeconds >= 60) {
+          minutes = Math.floor(totalSeconds / 60);
+          totalSeconds -= 60 * minutes;
+        }
+        seconds = totalSeconds;
+        this.timeElapsed = new TimeElapsed(minutes, seconds);
+
+        if(t.getTime() == endDate.getTime()) {
+          this.subscription.unsubscribe();
+        }
+      });
   }
 
   public verifyAuthNumber() {
@@ -122,6 +159,11 @@ export class IdentityVerificationComponent extends AbstractPopupComponent implem
       this.verified = result.verified;
       if(result.verified) {
         Alert.success("본인인증에 성공했습니다.");
+        this.timeElapsed = null;
+        if(this.subscription) {
+          this.subscription.unsubscribe();
+        }
+
       } else {
         Alert.error("인증번호가 틀렸습니다.");
       }
@@ -165,3 +207,14 @@ export class IdentityVerificationComponent extends AbstractPopupComponent implem
     });
   }
 }
+
+class TimeElapsed {
+  constructor(minutes: number, seconds: number) {
+    this.minutes = minutes;
+    this.seconds = seconds;
+  }
+
+  public minutes: number;
+  public seconds: number;
+}
+
