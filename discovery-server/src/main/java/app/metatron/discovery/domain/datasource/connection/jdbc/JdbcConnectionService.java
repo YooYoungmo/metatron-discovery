@@ -42,11 +42,15 @@
 
 package app.metatron.discovery.domain.datasource.connection.jdbc;
 
+import app.metatron.discovery.common.ConnectionConfigProperties;
+import app.metatron.discovery.domain.workbench.hive.HivePersonalDatasource;
+import app.metatron.discovery.util.ApplicationContextProvider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -900,7 +904,6 @@ public class JdbcConnectionService {
     return extensionInfo;
   }
 
-
   public Object getHivePersonalDatasourceInformation(DataConnection jdbcDataConnection) {
     Map<String, Object> hivePersonalDatasourceInfo = new HashMap<>();
 
@@ -914,5 +917,24 @@ public class JdbcConnectionService {
     }
 
     return hivePersonalDatasourceInfo;
+  }
+
+  public boolean isSupportIMSI(DataConnection jdbcDataConnection){
+    try{
+      Map<String, String> connectionProperties = jdbcDataConnection.getPropertiesMap();
+      if(MapUtils.isEmpty(connectionProperties)) {
+        return false;
+      }
+      if(StringUtils.isNotEmpty(connectionProperties.get(JdbcDialect.METATRON_IMSI_PROPERTY))) {
+        if(connectionProperties.getOrDefault(JdbcDialect.METATRON_IMSI_PROPERTY, "").equalsIgnoreCase("enable")) {
+          return true;
+        }
+      }
+      return false;
+
+    } catch (JdbcDataConnectionException e){
+      LOGGER.error("cannot get isSupportIMSI for {}", jdbcDataConnection.getImplementor(), e);
+      return false;
+    }
   }
 }

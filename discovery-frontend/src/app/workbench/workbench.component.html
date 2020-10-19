@@ -515,7 +515,7 @@
                     <!-- Result Search -->
                     <div [class.type-opacity]="hideResultButtons" class="ddp-wrap-btn-link">
                       <!-- 데이터 암/복호화 -->
-                      <div [hidden]="visibleResultTab.message" class="ddp-ui-link" >
+                      <div [hidden]="visibleResultTab.message" class="ddp-ui-link" *ngIf="supportIMSI">
                         <a (click)="showDataEncryptionDecryption()" href="javascript:" class="ddp-btn-link" >
                           <em class="ddp-icon-key"></em>
                           <div class="ddp-ui-tooltip-info">
