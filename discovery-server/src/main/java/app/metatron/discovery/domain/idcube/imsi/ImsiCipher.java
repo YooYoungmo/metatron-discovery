@@ -24,6 +24,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ public class ImsiCipher {
   final private String csvBaseDir;
   final private String csvFile;
   final private List<Field> fields;
+  private List<Field> cipherFields = new ArrayList<>();
   final private String targetField;
 
   public ImsiCipher(String cipherType, String csvBaseDir, String csvFile, List<Field> fields, String targetField) {
@@ -72,7 +74,6 @@ public class ImsiCipher {
         throw new MetatronException("원 데이터와 암복호화 데이터의 크기가 다릅니다.");
       }
 
-      allOfValues.addAll(values);
       allOfEncryptOrDecryptedValues.addAll(encryptOrDecryptedData);
       index += PROCESS_MAX_ROW - 1;
     }
@@ -80,16 +81,17 @@ public class ImsiCipher {
     Field originalField = fields.stream().filter(field -> field.getName().equalsIgnoreCase(targetField)).findFirst().get();
     Field newField = new Field();
     BeanUtils.copyPropertiesNullAware(newField, originalField);
-    newField.setName(originalField.getName() + CIPHER_FIELD_POSTFIX);
-    newField.setLogicalName(originalField.getLogicalName() + CIPHER_FIELD_POSTFIX);
-    newField.setOriginalName(originalField.getOriginalName() + CIPHER_FIELD_POSTFIX);
+    newField.setName(originalField.getName());
+    newField.setLogicalName(originalField.getLogicalName());
+    newField.setOriginalName(originalField.getOriginalName());
     newField.setType(DataType.STRING);
-    this.fields.add(newField);
+    this.cipherFields.add(newField);
 
-    for(int i = 0; i < allOfValues.size(); i++) {
-      allOfValues.get(i).put(this.targetField + CIPHER_FIELD_POSTFIX, allOfEncryptOrDecryptedValues.get(i));
+    for(int i = 0; i < allOfEncryptOrDecryptedValues.size(); i++) {
+      Map<String, Object> row = new HashMap<>();
+      row.put(this.targetField, allOfEncryptOrDecryptedValues.get(i));
+      allOfValues.add(row);
     }
-
     return allOfValues;
   }
 
@@ -103,10 +105,10 @@ public class ImsiCipher {
       mapWriter = new CsvMapWriter(new FileWriter(csvFilePath),
           CsvPreference.STANDARD_PREFERENCE);
 
-      final CellProcessor[] processors = getProcessors(this.fields);
+      final CellProcessor[] processors = getProcessors(this.cipherFields);
 
       // write the header
-      final String[] header = this.fields.stream().map(field -> field.getName()).toArray(String[]::new);
+      final String[] header = this.cipherFields.stream().map(field -> field.getName()).toArray(String[]::new);
 
       mapWriter.writeHeader(header);
 
@@ -188,6 +190,10 @@ public class ImsiCipher {
       }
     }
     return cellProcessorList.toArray(new CellProcessor[]{});
+  }
+
+  public List<Field> getCipherFields() {
+    return cipherFields;
   }
 }
 

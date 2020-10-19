@@ -113,7 +113,7 @@ public class IMSIController {
     String csvFileName = cipher.writeToCSV(data);
 
     Map<String, Object> result = new HashMap<>();
-    result.put("fields", cipherRequest.getFields());
+    result.put("fields", cipher.getCipherFields());
     result.put("data", data);
     result.put("csvFileName", csvFileName);
 
