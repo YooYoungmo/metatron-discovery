@@ -38,6 +38,7 @@ export class Dataconnection extends AbstractHistoryEntity {
   // properties
   public properties: any;
   public supportSaveAsHiveTable: boolean;
+  public supportIMSI: boolean;
   public hivePersonalDatasourceInformation: any;
 
   public dataSources: any[];
