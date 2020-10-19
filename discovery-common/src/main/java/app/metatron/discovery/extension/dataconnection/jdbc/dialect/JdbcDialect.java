@@ -61,6 +61,8 @@ public interface JdbcDialect extends ExtensionPoint {
    */
   String[] RESULTSET_TABLE_TYPES = new String[]{"TABLE", "VIEW"};
 
+  String METATRON_IMSI_PROPERTY = "metatron.property.imsi";
+
   /**
    * The enum Scope.
    */

@@ -82,6 +82,9 @@ public class DataConnectionProjections {
 
     @Value("#{@jdbcConnectionService.getHivePersonalDatasourceInformation(target)}")
     Object getHivePersonalDatasourceInformation();
+
+    @Value("#{@jdbcConnectionService.isSupportIMSI(target)}")
+    Boolean isSupportIMSI();
   }
 
   @Projection(name = "forSimpleListView", types = { DataConnection.class })

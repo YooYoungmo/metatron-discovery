@@ -326,6 +326,7 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   public saveAsLayer: boolean = false;
   public supportSaveAsHiveTable: boolean = false;
   public supportPersonalDatabase: boolean = false;
+  public supportIMSI: boolean = false;
 
   public connTargetImgUrl: string = '';
 
@@ -1575,6 +1576,11 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
             if (data.dataConnection.supportSaveAsHiveTable) {
               this.supportSaveAsHiveTable = true;
             }
+
+            if (data.dataConnection.supportIMSI) {
+              this.supportIMSI = true;
+            }
+
             if (data.dataConnection.hivePersonalDatasourceInformation["supportPersonalDatabase"]) {
               this.supportPersonalDatabase = true;
             }
