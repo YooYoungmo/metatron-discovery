@@ -14,8 +14,16 @@ import app.metatron.discovery.domain.workbench.QueryEditor;
 import app.metatron.discovery.domain.workbench.QueryEditorRepository;
 import app.metatron.discovery.domain.workbench.QueryEditorResult;
 import app.metatron.discovery.domain.workbench.WorkbenchProperties;
+import app.metatron.discovery.domain.workbench.dto.ImportCsvFile;
+import app.metatron.discovery.domain.workbench.dto.ImportFile;
+import app.metatron.discovery.domain.workbench.hive.DataTable;
+import app.metatron.discovery.domain.workbench.hive.DataTableHiveRepository;
+import app.metatron.discovery.domain.workbench.hive.HivePersonalDatasource;
+import app.metatron.discovery.domain.workbench.hive.WorkbenchHiveService;
 import app.metatron.discovery.util.AuthUtils;
 import app.metatron.discovery.util.HttpUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +51,15 @@ public class IMSIController {
 
   private DataDownloadHistoryRepository dataDownloadHistoryRepository;
 
+  private WorkbenchHiveService workbenchHiveService;
+
+  private DataTableHiveRepository dataTableHiveRepository;
+
+  @Autowired
+  public void setWorkbenchHiveService(WorkbenchHiveService workbenchHiveService) {
+    this.workbenchHiveService = workbenchHiveService;
+  }
+
   @Autowired
   private IdCubeProperties idCubeProperties;
 
@@ -67,6 +84,11 @@ public class IMSIController {
   @Autowired
   public void setDataDownloadHistoryRepository(DataDownloadHistoryRepository dataDownloadHistoryRepository) {
     this.dataDownloadHistoryRepository = dataDownloadHistoryRepository;
+  }
+
+  @Autowired
+  public void setDataTableHiveRepository(DataTableHiveRepository dataTableHiveRepository) {
+    this.dataTableHiveRepository = dataTableHiveRepository;
   }
 
   @PostMapping(value = "/identity-verification")
@@ -142,12 +164,45 @@ public class IMSIController {
 
     final String csvFilePath = csvBaseDir + transformFileName;
     HttpUtils.downloadCSVFile(response, transformFileName, csvFilePath, "text/csv; charset=utf-8");
+
     try {
       DataDownloadHistory findDataDownloadHistory = dataDownloadHistoryRepository.findOne(dataDownloadHistoryId);
       findDataDownloadHistory.setDownloaded(true);
+
+      try {
+        String savedHdfsDataFilePath = saveToHdfs(transformFileName);
+        findDataDownloadHistory.setDownloadedBackupHdfsFilePath(savedHdfsDataFilePath);
+      } catch (Exception e) {
+        LOGGER.error("error Logging hdfs file path", e);
+      }
+
       dataDownloadHistoryRepository.save(findDataDownloadHistory);
     } catch (Exception e) {
       LOGGER.error("error Logging workspace audit logs for data downloads from workbenches and workbook", e);
+    }
+  }
+
+  private String saveToHdfs(String file) {
+    if(idCubeProperties != null) {
+      final String hdfsConfPath = idCubeProperties.getImsi().getDownloadHistoryBackupHdfs().getHdfsConfPath();
+      final String user = idCubeProperties.getImsi().getDownloadHistoryBackupHdfs().getUser();
+      final String backupPath = idCubeProperties.getImsi().getDownloadHistoryBackupHdfs().getBackupPath();
+
+      if(StringUtils.isNotEmpty(hdfsConfPath) && StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(backupPath)) {
+        try {
+          ImportFile importFile = new ImportCsvFile();
+          importFile.setUploadedFile(file);
+          DataTable dataTable = workbenchHiveService.convertUploadFileToDataTable(importFile);
+          HivePersonalDatasource datasource = new HivePersonalDatasource(hdfsConfPath, user, "", "");
+          return dataTableHiveRepository.saveToHdfs(datasource, new Path(backupPath), dataTable, "");
+        } catch (Exception e) {
+          throw new RuntimeException("error save hdfs", e);
+        }
+      } else {
+        throw new RuntimeException("error id-cube property hdfs-conf-path or user, backup-path are empty");
+      }
+    } else {
+      throw new RuntimeException("error id-cube property are empty");
     }
   }
 
