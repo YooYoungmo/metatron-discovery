@@ -48,6 +48,7 @@ public class IdCubeProperties {
   public static class Imsi {
     private SmsServer smsServer = new SmsServer();
     private CipherServer cipherServer = new CipherServer();
+    private DownloadHistoryBackupHdfs downloadHistoryBackupHdfs = new DownloadHistoryBackupHdfs();
     private int maxResultSize = 0;
 
     public static class SmsServer {
@@ -119,6 +120,36 @@ public class IdCubeProperties {
       }
     }
 
+    public static class DownloadHistoryBackupHdfs {
+      private String hdfsConfPath;
+      private String user;
+      private String backupPath;
+
+      public String getHdfsConfPath() {
+        return hdfsConfPath;
+      }
+
+      public void setHdfsConfPath(String hdfsConfPath) {
+        this.hdfsConfPath = hdfsConfPath;
+      }
+
+      public String getUser() {
+        return user;
+      }
+
+      public void setUser(String user) {
+        this.user = user;
+      }
+
+      public String getBackupPath() {
+        return backupPath;
+      }
+
+      public void setBackupPath(String backupPath) {
+        this.backupPath = backupPath;
+      }
+    }
+
     public SmsServer getSmsServer() {
       return smsServer;
     }
@@ -141,6 +172,14 @@ public class IdCubeProperties {
 
     public void setMaxResultSize(int maxResultSize) {
       this.maxResultSize = maxResultSize;
+    }
+
+    public DownloadHistoryBackupHdfs getDownloadHistoryBackupHdfs() {
+      return downloadHistoryBackupHdfs;
+    }
+
+    public void setDownloadHistoryBackupHdfs(DownloadHistoryBackupHdfs downloadHistoryBackupHdfs) {
+      this.downloadHistoryBackupHdfs = downloadHistoryBackupHdfs;
     }
   }
 
