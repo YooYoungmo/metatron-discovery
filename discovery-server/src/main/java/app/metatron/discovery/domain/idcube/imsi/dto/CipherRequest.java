@@ -10,6 +10,7 @@ public class CipherRequest {
   private Long identityVerificationId;
   private String csvFile;
   private List<Field> fields;
+  private String queryEditorId;
 
   public String getCipherType() {
     return cipherType;
@@ -49,5 +50,13 @@ public class CipherRequest {
 
   public void setFields(List<Field> fields) {
     this.fields = fields;
+  }
+
+  public String getQueryEditorId() {
+    return queryEditorId;
+  }
+
+  public void setQueryEditorId(String queryEditorId) {
+    this.queryEditorId = queryEditorId;
   }
 }

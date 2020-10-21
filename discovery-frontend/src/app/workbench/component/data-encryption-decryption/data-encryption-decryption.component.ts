@@ -112,4 +112,5 @@ export class DataEncryptionDecryptionContext {
   public cryptoFieldName: string;
   public originalDataSet: DataSet;
   public transformDataSet: DataSet;
+  public dataDownloadHistoryId: number;
 }
