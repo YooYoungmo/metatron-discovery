@@ -104,11 +104,8 @@ export class EncryptionDecryptionCompletionComponent extends AbstractPopupCompon
 
   public download() {
     const request = {
-      queryEditorId: this.context.queryEditorId,
-      originalFileName: this.context.originalDataSet.csvFilePath,
+      dataDownloadHistoryId: this.context.dataDownloadHistoryId,
       transformFileName: this.context.transformDataSet.csvFilePath,
-      cryptoType: this.context.cryptoType,
-      cryptoFieldName: this.context.cryptoFieldName,
     };
 
     this.loadingShow();

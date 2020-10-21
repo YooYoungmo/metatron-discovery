@@ -128,6 +128,7 @@ export class DataSelectionComponent extends AbstractPopupComponent implements On
   public next() {
     if (this.isEnableNext()) {
       const request = {
+        queryEditorId: this.context.queryEditorId,
         cipherType: this.selectedTransformType.type,
         cipherFieldName: this.selectedColumn.originalName,
         identityVerificationId: this.context.identityVerificationId,
@@ -140,6 +141,7 @@ export class DataSelectionComponent extends AbstractPopupComponent implements On
         this.context.cryptoType = this.selectedTransformType.type;
         this.context.cryptoFieldName = this.selectedColumn.originalName;
         this.context.transformDataSet = new DataSet(result.csvFileName, result.data, result.fields);
+        this.context.dataDownloadHistoryId = result.dataDownloadHistoryId;
         this.step = 'encryption-decryption-completion';
         this.stepChange.emit(this.step);
       }).catch(() => {

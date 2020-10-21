@@ -108,25 +108,32 @@ public class IMSIController {
       csvBaseDir = csvBaseDir + File.separator;
     }
 
-    ImsiCipher cipher = new ImsiCipher(cipherRequest.getCipherType(), csvBaseDir, cipherRequest.getCsvFile(), cipherRequest.getFields(), cipherRequest.getCipherFieldName());
+    ImsiCipher cipher = new ImsiCipher(cipherRequest.getCipherType(), csvBaseDir, cipherRequest.getCsvFile(),
+        cipherRequest.getFields(), cipherRequest.getCipherFieldName());
     List<Map<String, Object>> data = cipher.encryptOrDecrypt();
     String csvFileName = cipher.writeToCSV(data);
+
+    Long dataDownloadHistoryId = null;
+    try {
+      dataDownloadHistoryId = logDataDownloadHistory(cipherRequest.getQueryEditorId(), cipherRequest.getCsvFile(),
+          cipherRequest.getCipherType(), cipherRequest.getCipherFieldName());
+    } catch (Exception e) {
+      LOGGER.error("error Logging workspace audit logs for data downloads from workbenches and workbook", e);
+    }
 
     Map<String, Object> result = new HashMap<>();
     result.put("fields", cipher.getCipherFields());
     result.put("data", data);
     result.put("csvFileName", csvFileName);
+    result.put("dataDownloadHistoryId", dataDownloadHistoryId);
 
     return ResponseEntity.ok(result);
   }
 
   @PostMapping(path = "/encryption-or-decryption/download")
   public void download(@RequestBody Map<String, Object> requestBody, HttpServletResponse response) throws IOException {
-    final String queryEditorId = (String)requestBody.get("queryEditorId");
-    final String originalFileName = (String)requestBody.get("originalFileName");
     final String transformFileName = (String)requestBody.get("transformFileName");
-    final String cryptoType = (String)requestBody.get("cryptoType");
-    final String cryptoFieldName = (String)requestBody.get("cryptoFieldName");
+    final Long dataDownloadHistoryId = Long.valueOf((Integer)requestBody.get("dataDownloadHistoryId"));
 
     String csvBaseDir = workbenchProperties.getTempCSVPath();
     if(!csvBaseDir.endsWith(File.separator)){
@@ -136,13 +143,15 @@ public class IMSIController {
     final String csvFilePath = csvBaseDir + transformFileName;
     HttpUtils.downloadCSVFile(response, transformFileName, csvFilePath, "text/csv; charset=utf-8");
     try {
-      logDataDownloadHistory(queryEditorId, originalFileName, cryptoType, cryptoFieldName);
+      DataDownloadHistory findDataDownloadHistory = dataDownloadHistoryRepository.findOne(dataDownloadHistoryId);
+      findDataDownloadHistory.setDownloaded(true);
+      dataDownloadHistoryRepository.save(findDataDownloadHistory);
     } catch (Exception e) {
       LOGGER.error("error Logging workspace audit logs for data downloads from workbenches and workbook", e);
     }
   }
 
-  private void logDataDownloadHistory(String queryEditorId, String csvFilePath, String cryptoType, String cryptoFieldName) {
+  private Long logDataDownloadHistory(String queryEditorId, String csvFilePath, String cryptoType, String cryptoFieldName) {
     QueryEditor queryEditor = queryEditorRepository.findOne(queryEditorId);
     if(queryEditor == null){
       throw new ResourceNotFoundException("QueryEditor(" + queryEditorId + ")");
@@ -153,7 +162,12 @@ public class IMSIController {
         .findFirst();
 
     if(queryResult.isPresent()) {
-      dataDownloadHistoryRepository.save(new DataDownloadHistory(queryEditor.getWorkbench().getId(), queryResult.get().getQuery(), cryptoFieldName, cryptoType));
+      DataDownloadHistory dataDownloadHistory =
+          new DataDownloadHistory(queryEditor.getWorkbench().getId(), queryResult.get().getQuery(), cryptoFieldName, cryptoType);
+      dataDownloadHistoryRepository.save(dataDownloadHistory);
+      return dataDownloadHistory.getId();
+    } else {
+      throw new MetatronException("Not found queryResult.");
     }
   }
 
