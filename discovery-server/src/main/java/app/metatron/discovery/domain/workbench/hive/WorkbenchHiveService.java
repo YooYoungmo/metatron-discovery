@@ -169,7 +169,7 @@ public class WorkbenchHiveService {
     return script.toString();
   }
 
-  private DataTable convertUploadFileToDataTable(ImportFile importFile) {
+  public DataTable convertUploadFileToDataTable(ImportFile importFile) {
     final String filePath = String.format("%s/%s", workbenchProperties.getTempCSVPath(), importFile.getUploadedFile());
 
     if(Files.notExists((Paths.get(filePath)))) {

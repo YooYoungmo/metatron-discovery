@@ -27,6 +27,9 @@ public class DataDownloadHistory {
   @Column(name = "downloaded")
   private Boolean downloaded;
 
+  @Column(name = "downloaded_backup_hdfs_file_path")
+  private String downloadedBackupHdfsFilePath;
+
   @Column(name = "downloaded_by")
   private String downloadedBy;
 
@@ -51,5 +54,9 @@ public class DataDownloadHistory {
 
   public void setDownloaded(Boolean downloaded) {
     this.downloaded = downloaded;
+  }
+
+  public void setDownloadedBackupHdfsFilePath(String downloadedBackupHdfsFilePath) {
+    this.downloadedBackupHdfsFilePath = downloadedBackupHdfsFilePath;
   }
 }
