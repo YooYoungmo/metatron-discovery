@@ -24,6 +24,9 @@ public class DataDownloadHistory {
   @Column(name = "crypto_type")
   private String cryptoType;
 
+  @Column(name = "downloaded")
+  private Boolean downloaded;
+
   @Column(name = "downloaded_by")
   private String downloadedBy;
 
@@ -40,5 +43,13 @@ public class DataDownloadHistory {
     this.cryptoType = cryptoType;
     this.downloadedBy = AuthUtils.getAuthUserName();
     this.downloadedAt = LocalDateTime.now();
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setDownloaded(Boolean downloaded) {
+    this.downloaded = downloaded;
   }
 }
