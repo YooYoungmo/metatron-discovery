@@ -118,6 +118,18 @@ public class IMSIController {
     return ResponseEntity.ok(result);
   }
 
+  @PostMapping(value = "/identity-verification/purpose-of-use")
+  public ResponseEntity<?> addPurposeOfUse(@RequestBody Map<String, Object> requestBody) {
+    final Long identityVerificationId = Long.valueOf((Integer)requestBody.get("identityVerificationId"));
+    final String purposeOfUse = (String)requestBody.get("purposeOfUse");
+
+    IdentityVerification identityVerification = identityVerificationRepository.findOne(identityVerificationId);
+    identityVerification.setPurposeOfUse(purposeOfUse);
+    identityVerificationRepository.save(identityVerification);
+
+    return ResponseEntity.ok(null);
+  }
+
   @PostMapping(value = "/encryption-or-decryption")
   public ResponseEntity<?> encryptOrDecrypt(@RequestBody CipherRequest cipherRequest) {
     IdentityVerification identityVerification = identityVerificationRepository.findOne(cipherRequest.getIdentityVerificationId());

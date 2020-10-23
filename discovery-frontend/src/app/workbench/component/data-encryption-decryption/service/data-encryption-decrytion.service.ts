@@ -31,6 +31,11 @@ export class DataEncryptionDecryptionService extends AbstractService {
     return this.get(this.API_URL + `idcube/imsi/identity-verification?identityVerificationId=${identityVerificationId}&receivedAuthenticationNumber=${receivedAuthNumber}`);
   }
 
+  public addPurposeOfUseForIdentityVerification(data) {
+    return this.post(this.API_URL + `idcube/imsi/identity-verification/purpose-of-use`, data);
+  }
+
+
   public encryptOrDecrypt(data: any) {
     return this.post(this.API_URL + `idcube/imsi/encryption-or-decryption`, data);
   }
