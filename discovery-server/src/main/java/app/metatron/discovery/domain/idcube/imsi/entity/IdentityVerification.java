@@ -33,6 +33,9 @@ public class IdentityVerification {
 
   private Boolean verified;
 
+  @Column(name = "purpose_of_use")
+  private String purposeOfUse;
+
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 
@@ -104,5 +107,9 @@ public class IdentityVerification {
 
   public void setReceiverTelNo(String receiverTelNo) {
     this.receiverTelNo = receiverTelNo;
+  }
+
+  public void setPurposeOfUse(String purposeOfUse) {
+    this.purposeOfUse = purposeOfUse;
   }
 }
