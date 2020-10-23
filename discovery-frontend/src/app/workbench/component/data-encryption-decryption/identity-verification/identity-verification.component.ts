@@ -19,7 +19,7 @@ import {CommonUtil} from '../../../../common/util/common.util';
 import {DataEncryptionDecryptionService} from '../service/data-encryption-decrytion.service';
 import {Alert} from '../../../../common/util/alert.util';
 import {StringUtil} from '../../../../common/util/string.util';
-import {DataEncryptionDecryptionContext} from '../data-encryption-decryption.component';
+import {DataEncryptionDecryptionContext, DataSet} from '../data-encryption-decryption.component';
 import {Subscription, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
 
@@ -45,6 +45,10 @@ export class IdentityVerificationComponent extends AbstractPopupComponent implem
   public identityVerificationId: string;
   public verified : boolean = false;
   public ableSendAuthNumber = false;
+
+  public purposeOfUse : string[] = ["고객불만", "통화품질", "임원통화 품질", "기타"];
+  public selectedPurposeOfUse : string = "";
+  public otherPurposeOfUse : string = "";
 
   @Input()
   public step: string;
@@ -98,12 +102,39 @@ export class IdentityVerificationComponent extends AbstractPopupComponent implem
   | Public Method
   |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
+  public isEnableNext() {
+    if(this.verified == false) {
+      return false;
+    }
+    if(StringUtil.isEmpty(this.selectedPurposeOfUse)) {
+      return false;
+    }
+    if(this.selectedPurposeOfUse === "기타" && StringUtil.isEmpty(this.otherPurposeOfUse)) {
+      return false;
+    }
+
+    return true;
+  }
+
+
   public next() {
-    if (!this.verified) return;
-    // 다음 페이지로 이동
-    this.context.identityVerificationId = this.identityVerificationId;
-    this.step = 'data-selection';
-    this.stepChange.emit(this.step);
+    if (this.isEnableNext() == false) return;
+
+    const request = {
+      identityVerificationId: this.identityVerificationId,
+      purposeOfUse: this.selectedPurposeOfUse != "기타" ? this.selectedPurposeOfUse : this.otherPurposeOfUse,
+    };
+    this.loadingShow();
+    this.dataEncryptionDecryptionService.addPurposeOfUseForIdentityVerification(request).then((result) => {
+      this.loadingHide();
+      // 다음 페이지로 이동
+      this.context.identityVerificationId = this.identityVerificationId;
+      this.step = 'data-selection';
+      this.stepChange.emit(this.step);
+    }).catch(() => {
+      this.loadingHide();
+      Alert.error("오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    });
   }
 
   public sendAuthNumber() {

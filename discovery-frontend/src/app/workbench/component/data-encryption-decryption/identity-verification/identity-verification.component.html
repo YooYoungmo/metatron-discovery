@@ -18,7 +18,7 @@
   <!-- //닫기 버튼 -->
 
   <!-- 제목 영역 -->
-  <div class="ddp-icon-name" >
+  <div class="ddp-icon-name">
     <div class="ddp-ui-name2">
       IMSI 암/복호화
       <em class="ddp-bg-order-line3-type1"></em>
@@ -31,9 +31,17 @@
   <div class="ddp-type-contents-in">
     <div class="ddp-box-popupcontents2">
       <div class="ddp-ui-input-form">
+        <component-select [array]="purposeOfUse" [viewKey]="'name'" [isFull]="true" [usePlaceholder]="true"
+                          [defaultIndex]="-1"
+                          [unselectedMessage]="'사용목적을 선택하세요.'"
+                          (onSelected)="selectedPurposeOfUse = $event"></component-select>
+        <input *ngIf="selectedPurposeOfUse == '기타'" type="text" class="ddp-input-type" [(ngModel)]="otherPurposeOfUse" placeholder="목적을 입력 하세요." maxlength="100"/>
+      </div>
+      <div class="ddp-ui-input-form">
         <div class="ddp-data-form">
           <input type="text" class="ddp-input-type" value="{{userTelNo}}" disabled="disabled"/>
-          <a href="javascript:" class="ddp-btn-selection" [ngClass]="{'ddp-disabled' : !ableSendAuthNumber}" (click)="sendAuthNumber()">인증번호 전송</a>
+          <a href="javascript:" class="ddp-btn-selection" [ngClass]="{'ddp-disabled' : !ableSendAuthNumber}"
+             (click)="sendAuthNumber()">인증번호 전송</a>
         </div>
       </div>
       <div class="ddp-ui-input-form">
@@ -63,7 +71,8 @@
   <div class="ddp-ui-buttons">
     <a href="javascript:" class="ddp-btn-type-popup" (click)="close()">{{'msg.comm.btn.cancl' | translate}}</a>
     <!-- disabled 시 ddp-disabled 추가 -->
-    <a href="javascript:" class="ddp-btn-type-popup ddp-bg-black" [ngClass]="{'ddp-disabled' : !verified}" (click)="next()">{{'msg.comm.btn.next' | translate}}</a>
+    <a href="javascript:" class="ddp-btn-type-popup ddp-bg-black" [class.ddp-disabled]="!isEnableNext()"
+       (click)="next()">{{'msg.comm.btn.next' | translate}}</a>
   </div>
   <!-- //buttons -->
 
