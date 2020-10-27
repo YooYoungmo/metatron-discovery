@@ -109,7 +109,11 @@ public class IdentityVerification {
     this.receiverTelNo = receiverTelNo;
   }
 
-  public void setPurposeOfUse(String purposeOfUse) {
-    this.purposeOfUse = purposeOfUse;
+  public void setPurposeOfUse(String purposeOfUse, String details) {
+    if(StringUtils.isNotEmpty(details)) {
+      this.purposeOfUse = purposeOfUse + "(" + details + ")";
+    } else {
+      this.purposeOfUse = purposeOfUse;
+    }
   }
 }
