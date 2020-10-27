@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -207,7 +209,12 @@ public class IMSIController {
           importFile.setUploadedFile(file);
           DataTable dataTable = workbenchHiveService.convertUploadFileToDataTable(importFile);
           HivePersonalDatasource datasource = new HivePersonalDatasource(hdfsConfPath, user, "", "");
-          return dataTableHiveRepository.saveToHdfs(datasource, new Path(backupPath), dataTable, "");
+
+          String path = backupPath.endsWith(File.separator) ?
+              backupPath + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) :
+              backupPath + File.separator + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+          return dataTableHiveRepository.saveToHdfs(datasource, new Path(path), dataTable, "");
         } catch (Exception e) {
           throw new RuntimeException("error save hdfs", e);
         }
