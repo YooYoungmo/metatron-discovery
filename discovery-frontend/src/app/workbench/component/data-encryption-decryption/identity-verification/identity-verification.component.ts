@@ -122,8 +122,10 @@ export class IdentityVerificationComponent extends AbstractPopupComponent implem
 
     const request = {
       identityVerificationId: this.identityVerificationId,
-      purposeOfUse: this.selectedPurposeOfUse != "기타" ? this.selectedPurposeOfUse : this.otherPurposeOfUse,
+      purposeOfUse: this.selectedPurposeOfUse,
+      details : this.selectedPurposeOfUse != "기타" ? '' : this.otherPurposeOfUse,
     };
+
     this.loadingShow();
     this.dataEncryptionDecryptionService.addPurposeOfUseForIdentityVerification(request).then((result) => {
       this.loadingHide();

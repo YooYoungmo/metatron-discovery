@@ -122,9 +122,10 @@ public class IMSIController {
   public ResponseEntity<?> addPurposeOfUse(@RequestBody Map<String, Object> requestBody) {
     final Long identityVerificationId = Long.valueOf((Integer)requestBody.get("identityVerificationId"));
     final String purposeOfUse = (String)requestBody.get("purposeOfUse");
+    final String details = (String)requestBody.get("details");
 
     IdentityVerification identityVerification = identityVerificationRepository.findOne(identityVerificationId);
-    identityVerification.setPurposeOfUse(purposeOfUse);
+    identityVerification.setPurposeOfUse(purposeOfUse, details);
     identityVerificationRepository.save(identityVerification);
 
     return ResponseEntity.ok(null);
