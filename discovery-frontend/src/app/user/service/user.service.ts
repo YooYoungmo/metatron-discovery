@@ -58,9 +58,10 @@ export class UserService extends AbstractService {
         .catch(error => scope.isLoggedInErrorHandler(scope, error));
     } else {
       if(this.isLoginRedirect() == true) {
+        const redirectUrl = location.href;
         this.getLoginDelegationURL().then(res => {
             if(res['url']) {
-              this.moveToRedirectPage(res['url']);
+              this.moveToRedirectPage(redirectUrl, res['url']);
             } else {
               CommonUtil.moveToStartPage( this.router );
             }
@@ -93,13 +94,12 @@ export class UserService extends AbstractService {
     return currentURL.indexOf("redirect=false") == -1 ? true : false;
   }
 
-  public moveToRedirectPage(url: string) {
+  public moveToRedirectPage(redirectUrl: string, url: string) {
     let existQueryString = false;
     if(url.indexOf('?') !== -1) {
       existQueryString = true;
     }
-    const currentURL = location.href;
-    const queryString = (existQueryString ? "&" : "?") + "redirectURL=" + encodeURIComponent(currentURL);
+    const queryString = (existQueryString ? "&" : "?") + "redirectURL=" + encodeURIComponent(redirectUrl);
     const loginDelegationURL = url + queryString;
     CommonUtil.moveToStartPage( this.router, loginDelegationURL);
   }
@@ -118,9 +118,10 @@ export class UserService extends AbstractService {
         return true;
       }).catch(() => {
         if(this.isLoginRedirect() == true) {
+          const redirectUrl = location.href;
           this.getLoginDelegationURL().then(res => {
             if(res['url']) {
-              this.moveToRedirectPage(res['url']);
+              this.moveToRedirectPage(redirectUrl, res['url']);
             } else {
               CommonUtil.moveToStartPage( this.router );
             }
@@ -134,9 +135,10 @@ export class UserService extends AbstractService {
       });
     }  else {
       if(this.isLoginRedirect() == true) {
+        const redirectUrl = location.href;
         this.getLoginDelegationURL().then(res => {
           if(res['url']) {
-            this.moveToRedirectPage(res['url']);
+            this.moveToRedirectPage(redirectUrl, res['url']);
           } else {
             CommonUtil.moveToStartPage( this.router );
           }
