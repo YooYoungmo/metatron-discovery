@@ -152,8 +152,15 @@ public class IMSIController {
 
     Long dataDownloadHistoryId = null;
     try {
+      String savedHdfsDataFilePath = "";
+      try {
+        savedHdfsDataFilePath = saveToHdfs(csvFileName);
+      } catch (Exception e) {
+        LOGGER.error("error Logging hdfs file path", e);
+      }
+
       dataDownloadHistoryId = logDataDownloadHistory(cipherRequest.getQueryEditorId(), cipherRequest.getCsvFile(),
-          cipherRequest.getCipherType(), cipherRequest.getCipherFieldName());
+          cipherRequest.getCipherType(), cipherRequest.getCipherFieldName(), savedHdfsDataFilePath);
     } catch (Exception e) {
       LOGGER.error("error Logging workspace audit logs for data downloads from workbenches and workbook", e);
     }
@@ -183,14 +190,6 @@ public class IMSIController {
     try {
       DataDownloadHistory findDataDownloadHistory = dataDownloadHistoryRepository.findOne(dataDownloadHistoryId);
       findDataDownloadHistory.setDownloaded(true);
-
-      try {
-        String savedHdfsDataFilePath = saveToHdfs(transformFileName);
-        findDataDownloadHistory.setDownloadedBackupHdfsFilePath(savedHdfsDataFilePath);
-      } catch (Exception e) {
-        LOGGER.error("error Logging hdfs file path", e);
-      }
-
       dataDownloadHistoryRepository.save(findDataDownloadHistory);
     } catch (Exception e) {
       LOGGER.error("error Logging workspace audit logs for data downloads from workbenches and workbook", e);
@@ -226,7 +225,7 @@ public class IMSIController {
     }
   }
 
-  private Long logDataDownloadHistory(String queryEditorId, String csvFilePath, String cryptoType, String cryptoFieldName) {
+  private Long logDataDownloadHistory(String queryEditorId, String csvFilePath, String cryptoType, String cryptoFieldName, String downloadedBackupHdfsFilePath) {
     QueryEditor queryEditor = queryEditorRepository.findOne(queryEditorId);
     if(queryEditor == null){
       throw new ResourceNotFoundException("QueryEditor(" + queryEditorId + ")");
@@ -238,7 +237,7 @@ public class IMSIController {
 
     if(queryResult.isPresent()) {
       DataDownloadHistory dataDownloadHistory =
-          new DataDownloadHistory(queryEditor.getWorkbench().getId(), queryResult.get().getQuery(), cryptoFieldName, cryptoType);
+          new DataDownloadHistory(queryEditor.getWorkbench().getId(), queryResult.get().getQuery(), cryptoFieldName, cryptoType, downloadedBackupHdfsFilePath);
       dataDownloadHistoryRepository.save(dataDownloadHistory);
       return dataDownloadHistory.getId();
     } else {

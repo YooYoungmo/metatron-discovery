@@ -39,13 +39,14 @@ public class DataDownloadHistory {
   public DataDownloadHistory() {
   }
 
-  public DataDownloadHistory(String workbenchId, String query, String cryptoColumnName, String cryptoType) {
+  public DataDownloadHistory(String workbenchId, String query, String cryptoColumnName, String cryptoType, String downloadedBackupHdfsFilePath) {
     this.workbenchId = workbenchId;
     this.query = query;
     this.cryptoColumnName = cryptoColumnName;
     this.cryptoType = cryptoType;
     this.downloadedBy = AuthUtils.getAuthUserName();
     this.downloadedAt = LocalDateTime.now();
+    this.downloadedBackupHdfsFilePath = downloadedBackupHdfsFilePath;
   }
 
   public Long getId() {
