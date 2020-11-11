@@ -96,6 +96,7 @@ import {UIMapOption} from '../common/component/chart/option/ui-option/map/ui-map
 import {MapLayerType} from '../common/component/chart/option/define/map/map-common';
 import {fromEvent} from "rxjs";
 import {debounceTime, map} from "rxjs/operators";
+import {UIGridChart} from '../common/component/chart/option/ui-option/ui-grid-chart';
 
 const possibleMouseModeObj: any = {
   single: ['bar', 'line', 'grid', 'control', 'scatter', 'heatmap', 'pie', 'wordcloud', 'boxplot', 'combine'],
@@ -1722,6 +1723,8 @@ export class PageComponent extends AbstractPopupComponent implements OnInit, OnD
 
     if (this.chart instanceof GridChartComponent) {
       this.sorts = sortFields;
+      (<UIGridChart>this.uiOption).leafColumnWidth = {};
+      (<UIGridChart>this.uiOption).leafFrozenColumnWidth = {};
     } else {
       if (sortFields.length > 0) {
 

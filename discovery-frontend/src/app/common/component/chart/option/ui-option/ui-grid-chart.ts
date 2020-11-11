@@ -49,6 +49,8 @@ export interface UIGridChart extends UIOption {
   // UI 스펙
   ////////////////////////////////////////////
 
+  leafColumnWidth?: any;
+  leafFrozenColumnWidth?: any;
 }
 
 export interface ValueStyle {

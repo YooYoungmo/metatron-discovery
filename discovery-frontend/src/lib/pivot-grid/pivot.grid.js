@@ -9304,14 +9304,14 @@ var pivot =
 	  		// Body Cell Index 범위 초기값 정의
 	  		let startIdx = 0;
 	  		let endIdx = $elm.css('width').replace( common.__regexpText, '') / cellWidth;
-	  
+
 	  		// 선택 Axis 의 body cell 영역 산정
 	  		$elm.prevAll().each(function(prevIdx, prevElm) {
 	  			let $prevElm = $(prevElm);
 	  			startIdx += $prevElm.css('width').replace( common.__regexpText, '') / cellWidth;
 	  		}); // each - $elm.prevAll
 	  		endIdx += startIdx;
-	  
+
 	  		// xAxis 하위 cell 스타일 적용
 	  		$elm.parent().nextAll().each(function(axisIdx, axisElm) {
 	  			let $axisElm = $(axisElm);
@@ -9319,7 +9319,7 @@ var pivot =
 	  			while (currIdx < endIdx) {
 	  				let $target = $axisElm.find('.' + PivotStyle.cssClass.bodyCell + ':eq(' + currIdx + ')');
 	  				$target.addClass(cellStyle);
-	  
+
 	  				if (0 === $target.length) {
 	  					// 그리드데이터 너비보다 적게 그려져서 게산값보다 적은 경우 무한루프를 방지하기 위해 강제적으로 종료
 	  					break;
@@ -9328,7 +9328,7 @@ var pivot =
 	  				}
 	  			}
 	  		});
-	  
+
 	  		// body cell 스타일 적용
 	  		$bodyRow.each(function(rowIdx, rowElm) {
 	  			let $rowElm = $(rowElm);
@@ -26888,6 +26888,7 @@ var pivot =
 	                cumulativeClick: false,
 	                axisSelectMode: Viewer.SELECT_MODE.ONESIDE, // ONESIDE, SINGLE, MULTI    -- #20161227-01 : X/Y축 모두 클릭되도록 기능 추가
 	                useSelectStyle: true,
+                  onChangeColumnWidth: undefined,
 	                onAxisXClick: undefined,
 	                onAxisYClick: undefined,
 	                onBodyCellClick: undefined,
@@ -26994,8 +26995,8 @@ var pivot =
 	            this._dataCriteria = {};
 
 	            // Add Property by eltriny - Start
-	            this._leafColumnWidth = {}; // 각 아이템별 Width 값을 저장 ( itemKey : width Value ) - 20180807 : Koo : Resize Column
-	            this._leafFrozenColumnWidth = {}; // 고정 헤더 Width 값을 저장
+	            this._leafColumnWidth = this._settings.leafColumnWidth || {}; // 각 아이템별 Width 값을 저장 ( itemKey : width Value ) - 20180807 : Koo : Resize Column
+	            this._leafFrozenColumnWidth = this._settings.leafFrozenColumnWidth || {}; // 고정 헤더 Width 값을 저장
 
 	            this._axisDataset = [];
 	            this._selectedAxis = null;
@@ -27516,6 +27517,7 @@ var pivot =
 	                } else {
 	                    objViewer.renderDataToVertical(true);
 	                }
+                  objViewer._settings.onChangeColumnWidth(objViewer._leafColumnWidth, objViewer._leafFrozenColumnWidth);
 	            });
 	            //end steve
 	        }; // func - initialize
@@ -28126,7 +28128,7 @@ var pivot =
 	            // Head Wrap : x축 영역 표시 - End
 
 	            this.arrangeFrozenColumnRelatedElements();
-	           
+
 	            // body-frozen : y축 영역 표시 - Start
 	            html.length = 0;
 	            {
@@ -28693,14 +28695,14 @@ var pivot =
 	                    for (var ypi = 0; ypi < yPropMax; ypi++) {
 	                        columnAttributes = {};
 	                        columnAttributes["class"] = pivotStyle.cssClass.headCell;
-	                        columnAttributes["title"] = this._settings.yProperties[ypi].name;	
+	                        columnAttributes["title"] = this._settings.yProperties[ypi].name;
 
 	                        columnStyles = {};
 	                        columnStyles["height"] = cellHeight + "px";
 	                        columnStyles["color"] = this._settings.header.font.color;
 	                        columnStyles["background-color"] = this._settings.header.backgroundColor;
 
-	                        leafFrozenColWidth[this._settings.yProperties[ypi].name] || (leafFrozenColWidth[this._settings.yProperties[ypi].name] = frozenCellWidth);	
+	                        leafFrozenColWidth[this._settings.yProperties[ypi].name] || (leafFrozenColWidth[this._settings.yProperties[ypi].name] = frozenCellWidth);
 	                        var frozenColWidth = leafFrozenColWidth[this._settings.yProperties[ypi].name];
 	                        columnStyles["width"] = frozenColWidth + "px";
 	                        columnStyles["left"] = frozenColumnStyleLeft + "px";
@@ -28722,7 +28724,7 @@ var pivot =
                         	html.push("<div " + common.attributesString(columnAttributes, columnStyles) + "></div>");
 
                           html.push("</div>");
-	                       
+
 	                        frozenColumnStyleLeft += frozenColWidth;
 	                    }
 	                    html.push("</div>");
