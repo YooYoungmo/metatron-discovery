@@ -411,6 +411,12 @@ export class GridChartComponent extends BaseChart<UIGridChart> implements OnInit
       yProperties: rows,
       zProperties: aggregations,
       axisSelectMode: 'MULTI',
+      onChangeColumnWidth: (leafColumnWidth, leafFrozenColumnWidth) => {
+        (<UIGridChart>this.uiOption).leafColumnWidth = leafColumnWidth;
+        (<UIGridChart>this.uiOption).leafFrozenColumnWidth = leafFrozenColumnWidth;
+      },
+      leafColumnWidth: (<UIGridChart>this.uiOption).leafColumnWidth,
+      leafFrozenColumnWidth: (<UIGridChart>this.uiOption).leafFrozenColumnWidth,
       onAxisXClick: !this.isPage ? this.addGridSelectEventListener : null,
       onAxisYClick: !this.isPage ? this.addGridSelectEventListener : null,
       onBodyCellClick: !this.isPage && this.pivot.columns.length > 1 && this.pivot.rows.length > 1 ? this.addGridSelectEventListener : null, // 한쪽에만 헤더가 있는경우 cellClick이 안되게 막음

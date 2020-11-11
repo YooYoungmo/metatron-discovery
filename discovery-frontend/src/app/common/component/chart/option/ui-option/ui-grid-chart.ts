@@ -67,6 +67,8 @@ export interface UIGridChart extends UIOption {
   ////////////////////////////////////////////
   gridColumnWidth?: any;
 
+  leafColumnWidth?: any;
+  leafFrozenColumnWidth?: any;
 }
 
 export interface ValueStyle {
