@@ -1629,6 +1629,20 @@ export class CommonOptionComponent extends BaseOptionComponent implements OnInit
   }
 
   /**
+   * grid - 틀고정 설정
+   */
+  public changeFixedHeader(fixedHeader: boolean): void {
+
+    let headerStyle = _.cloneDeep((<UIGridChart>this.uiOption).headerStyle);
+
+    headerStyle.fixedHeader = fixedHeader;
+
+    this.uiOption = <UIOption>_.extend({}, this.uiOption, {headerStyle: headerStyle});
+
+    this.update();
+  }
+
+  /**
    * grid - 본문 폰트 색상 설정
    */
   public changeContentFontColor(fontColor: any): void {

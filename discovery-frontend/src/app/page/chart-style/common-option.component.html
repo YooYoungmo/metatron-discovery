@@ -185,6 +185,17 @@
                 </div>
               </div>
               <!-- //multy -->
+
+              <div class="ddp-wrap-option-slider">
+                <span class="ddp-label-slider">틀고정</span>
+                <!-- Slide THREE -->
+                <div class="ddp-checkbox-slide ddp-checkbox-automatic2">
+                  <input type="checkbox" value="None" id="ckShowHeader" [checked]="uiOption?.headerStyle?.fixedHeader"
+                         (click)="changeFixedHeader(!uiOption?.headerStyle?.fixedHeader)">
+                  <label for="ckShowHeader"><span class="ddp-slide"></span></label>
+                </div>
+                <!-- //Slide THREE -->
+              </div>
             </div>
           </div>
           <!-- // divide -->

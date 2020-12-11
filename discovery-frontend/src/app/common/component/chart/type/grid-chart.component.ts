@@ -526,6 +526,7 @@ export class GridChartComponent extends BaseChart<UIGridChart> implements OnInit
 
       // 헤더 보이기
       this.gridModel.header.showHeader = this.uiOption.headerStyle.showHeader;
+      this.gridModel.header.fixedHeader = this.uiOption.headerStyle.fixedHeader;
 
       // 설명 설정
       this.gridModel.remark = this.uiOption.annotation;
@@ -721,6 +722,7 @@ export class GridChartComponent extends BaseChart<UIGridChart> implements OnInit
     if (!uiOption.headerStyle) uiOption.headerStyle = {};
     if (!uiOption.headerStyle.fontSize) uiOption.headerStyle.fontSize = FontSize.NORMAL;
     if (_.isUndefined(uiOption.headerStyle.showHeader)) uiOption.headerStyle.showHeader = true;
+    if (_.isUndefined(uiOption.headerStyle.fixedHeader)) uiOption.headerStyle.fixedHeader = true;
     if (!uiOption.headerStyle.fontStyles) uiOption.headerStyle.fontStyles = [];
     if (!uiOption.headerStyle.hAlign) uiOption.headerStyle.hAlign = UIPosition.LEFT;
     if (!uiOption.headerStyle.vAlign) uiOption.headerStyle.vAlign = UIPosition.MIDDLE;

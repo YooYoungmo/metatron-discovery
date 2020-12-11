@@ -1583,6 +1583,7 @@ export namespace OptionGenerator {
         headerStyle: {
           fontSize: FontSize.NORMAL,
           showHeader: true,
+          fixedHeader: true,
           fontStyles: [],
           hAlign: UIPosition.LEFT,
           vAlign: UIPosition.MIDDLE,
