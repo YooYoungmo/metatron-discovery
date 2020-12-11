@@ -75,6 +75,9 @@ export interface ValueStyle {
 
   // 글자색상
   fontColor?: string;
+
+  // 틀고정
+  fixedHeader?: boolean;
 }
 
 /**

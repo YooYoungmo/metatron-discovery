@@ -26896,6 +26896,7 @@ var pivot =
 	                yAxisAutoSort: false, // boolean 		-- #20170629-01 : y축 자동정렬 여부
 	                header: {
 	                    showHeader: true, // 헤더
+	                    fixedHeader: true, // 헤더
 	                    align: { // 정렬
 	                        hAlign: 'auto', // 가로정렬 (기본(일반텍스트는 좌측, 숫자는 우측), 좌측, 중앙, 우측)
 	                        vAlign: 'center' // 세로정렬 (상단, 중간, 하단)
@@ -26985,7 +26986,7 @@ var pivot =
 	            }
 	            // #20180831-01 : 1col 지원 추가 - E
 
-	            // 데이터 정리 - Start
+            // 데이터 정리 - Start
 	            this._pivotData = items;
 	            this._isPivot = true;
 	            this._items = [];
@@ -27772,8 +27773,10 @@ var pivot =
 	            this._elementBody.scrollLeft = 0;
 	            this._elementBody.scrollTop = 0;
 	            this._elementHead.scrollLeft = this._scrollLeft;
-	            this._elementHeadFrozen.style.left = this._scrollLeft + "px";
-	            this._elementBodyFrozen.style.left = this._scrollLeft + "px";
+	            if(this._settings.header.fixedHeader) {
+                this._elementHeadFrozen.style.left = this._scrollLeft + "px";
+                this._elementBodyFrozen.style.left = this._scrollLeft + "px";
+              }
 
 	            if (isSetRemark) {
 	                // this._elementAnnotation.style.width = Math.min(availableSizeHead.width, contentSize.width) + "px";
@@ -27875,10 +27878,12 @@ var pivot =
 	                        return acc;
 	                    }, 0);
 
-	                    if (_this2._scrollLeft < leftPos) {
-	                        range.left = 0 > idx - 1 ? 0 : idx - 1;
-	                        return "break";
-	                    }
+	                    if(_this2._settings.header.fixedHeader) {
+                        if (_this2._scrollLeft < leftPos) {
+                            range.left = 0 > idx - 1 ? 0 : idx - 1;
+                            return "break";
+                        }
+                      }
 	                };
 
 	                for (var idx = 0, nMax = this._xItems.length; idx < nMax; idx++) {
@@ -27892,7 +27897,12 @@ var pivot =
 	            if (!isForceRender && this._isPivot && range.top === this._itemsRange.top && range.bottom === this._itemsRange.bottom && range.left === this._itemsRange.left && range.right === this._itemsRange.right) {
 	                var el = this._elementHeadWrap.querySelector("." + pivotStyle.cssClass.headRow + ":first-child ." + pivotStyle.cssClass.bodyCell + ":first-child");
 	                if (el) {
-	                    el.style.left = this._scrollLeft + "px";
+	                    if(this._settings.header.fixedHeader) {
+                        el.style.left = this._scrollLeft + "px";
+                      } else {
+                        el.style.left = 0 + "px";
+                        el.style.width = "100%";
+                      }
 	                }
 	                return;
 	            }
@@ -27988,7 +27998,11 @@ var pivot =
 	                }).join(" / ");
 	                columnStyles = {};
 	                columnStyles["height"] = cellHeight + "px";
-	                columnStyles["left"] = this._elementBody.scrollLeft + "px";
+
+	                if(this._settings.header.fixedHeader) {
+                    columnStyles["left"] = this._elementBody.scrollLeft + "px";
+                  }
+
 	                columnStyles["color"] = this._settings.header.font.color;
 	                columnStyles["background-color"] = this._settings.header.backgroundColor;
 	                // 20180807 : Koo : Resize Column - S
@@ -29413,8 +29427,10 @@ var pivot =
 	                this._scrollLeft = scrollLeft;
 
 	                this._elementHead.scrollLeft = this._scrollLeft;
-	                this._elementHeadFrozen.style.left = this._scrollLeft + "px";
-	                this._elementBodyFrozen.style.left = this._scrollLeft + "px";
+	                if(this._settings.header.fixedHeader) {
+                    this._elementHeadFrozen.style.left = this._scrollLeft + "px";
+                    this._elementBodyFrozen.style.left = this._scrollLeft + "px";
+                  }
 	            }
 	            if (scrollTopChanged || scrollLeftChanged) {
 	                if (Viewer.DATA_COL_MODE.TOP === this._settings.dataColumnMode) {
