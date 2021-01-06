@@ -962,6 +962,8 @@ export class CommonOptionComponent extends BaseOptionComponent {
     }
 
     this.uiOption = <UIOption>_.extend({}, this.uiOption, {measureLayout});
+    (<UIGridChart>this.uiOption).leafColumnWidth = {};
+    (<UIGridChart>this.uiOption).leafFrozenColumnWidth = {};
 
     this.update();
   }
@@ -1375,6 +1377,8 @@ export class CommonOptionComponent extends BaseOptionComponent {
     //   this.uiOption = <UIOption>_.extend({}, this.uiOption, { contentStyle: (<UIGridChart>this.uiOption).contentStyle });
     //   return;
     // }
+    (<UIGridChart>this.uiOption).leafColumnWidth = {};
+    (<UIGridChart>this.uiOption).leafFrozenColumnWidth = {};
 
     this.update();
   }
