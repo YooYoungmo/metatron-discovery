@@ -56,11 +56,7 @@ import {GridChartComponent} from '../../../common/component/chart/type/grid-char
 import {BarChartComponent} from '../../../common/component/chart/type/bar-chart.component';
 import {LineChartComponent} from '../../../common/component/chart/type/line-chart.component';
 import {OptionGenerator} from '../../../common/component/chart/option/util/option-generator';
-import {
-  BoardSyncOptions,
-  BoardWidgetOptions,
-  WidgetShowType
-} from '../../../domain/dashboard/dashboard.globalOptions';
+import {BoardSyncOptions, BoardWidgetOptions, WidgetShowType} from '../../../domain/dashboard/dashboard.globalOptions';
 import {DataDownloadComponent, PreviewResult} from '../../../common/component/data-download/data.download.component';
 import {CustomField} from '../../../domain/workbook/configurations/field/custom-field';
 import {ChartLimitInfo, DashboardUtil} from '../../util/dashboard.util';
@@ -439,6 +435,11 @@ export class PageWidgetComponent extends AbstractWidgetComponent implements OnIn
             const lineChart: LineChartComponent = this.chart['lineChart'];
             barChart.chart.resize();
             lineChart.chart.resize();
+          } else if (this.chart.uiOption.type === ChartType.GRID) {
+            try {
+              if (this.chart && this.chart.chart) this.chart.chart.update();
+            } catch (error) {
+            }
           } else if (this.chart.uiOption.type === ChartType.LABEL) {
 
           } else if (this.chart.uiOption.type === ChartType.NETWORK) {
@@ -685,6 +686,26 @@ export class PageWidgetComponent extends AbstractWidgetComponent implements OnIn
       if (WidgetShowType.BY_WIDGET !== this.widgetOption.showLegend) {
         this.toggleLegend((WidgetShowType.ON === this.widgetOption.showLegend));
       }
+    }
+
+    if(uiOption.type === ChartType.GRID) {
+      // 위젯 수정
+      const param = {
+        configuration: this.widgetConfiguration,
+        name: this.widget.name
+      };
+
+      // 서버에 저장될필요 없는 파라미터 제거
+      param.configuration = DashboardUtil.convertPageWidgetSpecToServer(param.configuration);
+      const pageConf: PageWidgetConfiguration = param.configuration as PageWidgetConfiguration;
+
+      // 버전기록
+      this.widgetService.updateWidget(this.widget.id, param)
+        .then((widget) => {
+        })
+        .catch((err) => {
+          console.info(err);
+        });
     }
   } // function - uiOptionUpdatedHandler
 
