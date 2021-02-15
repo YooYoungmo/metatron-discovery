@@ -49,6 +49,7 @@ export interface UIGridChart extends UIOption {
   // UI 스펙
   ////////////////////////////////////////////
 
+  leafColumnEnable?: boolean;
   leafColumnWidth?: any;
   leafFrozenColumnWidth?: any;
 }

@@ -1723,6 +1723,7 @@ export class PageComponent extends AbstractPopupComponent implements OnInit, OnD
 
     if (this.chart instanceof GridChartComponent) {
       this.sorts = sortFields;
+      (<UIGridChart>this.uiOption).leafColumnEnable = false;
       (<UIGridChart>this.uiOption).leafColumnWidth = {};
       (<UIGridChart>this.uiOption).leafFrozenColumnWidth = {};
     } else {
