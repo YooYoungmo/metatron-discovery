@@ -687,26 +687,6 @@ export class PageWidgetComponent extends AbstractWidgetComponent implements OnIn
         this.toggleLegend((WidgetShowType.ON === this.widgetOption.showLegend));
       }
     }
-
-    if(uiOption.type === ChartType.GRID) {
-      // 위젯 수정
-      const param = {
-        configuration: this.widgetConfiguration,
-        name: this.widget.name
-      };
-
-      // 서버에 저장될필요 없는 파라미터 제거
-      param.configuration = DashboardUtil.convertPageWidgetSpecToServer(param.configuration);
-      const pageConf: PageWidgetConfiguration = param.configuration as PageWidgetConfiguration;
-
-      // 버전기록
-      this.widgetService.updateWidget(this.widget.id, param)
-        .then((widget) => {
-        })
-        .catch((err) => {
-          console.info(err);
-        });
-    }
   } // function - uiOptionUpdatedHandler
 
   /**
