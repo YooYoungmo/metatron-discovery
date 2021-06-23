@@ -618,7 +618,7 @@ export class AbstractService {
             }
           }
         })
-        .catch(error => {
+        .catch(() => {
           CommonUtil.moveToStartPage( this.router );
         });
     }

@@ -29,8 +29,8 @@ export class DetailsDataAggregateTaskComponent extends AbstractComponent impleme
    |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   private workbenchId: string = "";
   private taskId: number;
-  private taskName: string = "";
-  private dataAggregateTaskDetails: any;
+  public taskName: string = "";
+  public dataAggregateTaskDetails: any;
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    | Protected Variables

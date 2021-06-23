@@ -145,4 +145,7 @@
 
     <!-- discovery release based changelog -->
     <include file="discovery.changelog-3.4.0.xml" relativeToChangelogFile="true"/>
+
+    <!-- discovery idcube changelog -->
+    <include file="discovery.changelog-id-cube.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

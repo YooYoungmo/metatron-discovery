@@ -33,9 +33,6 @@ import {StringUtil} from '@common/util/string.util';
 import {AbstractWorkbenchComponent} from '../../abstract-workbench.component';
 import {WorkbenchService} from '../../../service/workbench.service';
 import {ImplementorType} from '@domain/dataconnection/dataconnection';
-import {DeleteModalComponent} from "../../../../common/component/modal/delete/delete.component";
-import {Modal} from "../../../../common/domain/modal";
-import {Alert} from "../../../../common/util/alert.util";
 import {EventBroadcaster} from "../../../../common/event/event.broadcaster";
 
 @Component({
@@ -47,9 +44,6 @@ export class DetailWorkbenchTableComponent extends AbstractWorkbenchComponent im
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   | Private Variables
   |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-
-  @ViewChild(DeleteModalComponent)
-  private deleteHiveTableModalComponent: DeleteModalComponent;
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   | Public Variables

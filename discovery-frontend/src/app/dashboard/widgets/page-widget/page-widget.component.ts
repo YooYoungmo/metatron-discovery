@@ -46,7 +46,7 @@ import {
 import {GridComponent} from '@common/component/grid/grid.component';
 import {Header, SlickGridHeader} from '@common/component/grid/grid.header';
 import {GridOption} from '@common/component/grid/grid.option';
-import {DataDownloadComponent} from '@common/component/data-download/data.download.component';
+import {DataDownloadComponent, PreviewResult} from '@common/component/data-download/data.download.component';
 import {MapChartComponent} from '@common/component/chart/type/map-chart/map-chart.component';
 import {GridChartComponent} from '@common/component/chart/type/grid-chart.component';
 import {BarChartComponent} from '@common/component/chart/type/bar-chart.component';
@@ -56,7 +56,13 @@ import {NetworkChartComponent} from '@common/component/chart/type/network-chart.
 import {BaseChart, ChartSelectInfo} from '@common/component/chart/base-chart';
 import {UIOption} from '@common/component/chart/option/ui-option';
 
-import {BoardConfiguration, BoardDataSource, DashboardWidgetRelation, LayoutMode} from '@domain/dashboard/dashboard';
+import {
+  BoardConfiguration,
+  BoardDataSource,
+  DashboardWidgetRelation,
+  LayoutMode,
+  QueryParam
+} from '@domain/dashboard/dashboard';
 import {BoardSyncOptions, BoardWidgetOptions, WidgetShowType} from '@domain/dashboard/dashboard.globalOptions';
 import {Pivot} from '@domain/workbook/configurations/pivot';
 import {ConnectionType, Datasource, Field, LogicalType} from '@domain/datasource/datasource';
@@ -1065,7 +1071,7 @@ export class PageWidgetComponent extends AbstractWidgetComponent<PageWidget>
               params.metaQuery = false;
               const dataSource: Datasource = this.findDataSourceUsedChart();
               this._dataDownComp.openDataDown(event, dataSource.fields, null, downloadPreview, params);
-            }).catch((err) => {
+            }).catch(() => {
             });
           } else {
             this._dataDownComp.openWidgetDown(event, this.widget.id, this.isOriginDown);
@@ -1918,14 +1924,14 @@ export class PageWidgetComponent extends AbstractWidgetComponent<PageWidget>
     }
   }
 
-  private findAllFieldInChartDataSource() : Field[] {
-    const findDataSources : Datasource[] = this.widget.dashBoard.dataSources.filter(ds => ds.id === this.widget.configuration.dataSource.id);
-    if(findDataSources && findDataSources.length === 1) {
-      return findDataSources[0].fields;
-    } else {
-      return [];
-    }
-  }
+  // private findAllFieldInChartDataSource() : Field[] {
+  //   const findDataSources : Datasource[] = this.widget.dashBoard.dataSources.filter(ds => ds.id === this.widget.configuration.dataSource.id);
+  //   if(findDataSources && findDataSources.length === 1) {
+  //     return findDataSources[0].fields;
+  //   } else {
+  //     return [];
+  //   }
+  // }
 
   private findDataSourceUsedChart() : Datasource {
     const findDataSources : Datasource[] = this.widget.dashBoard.dataSources.filter(ds => ds.id === this.widget.configuration.dataSource.id);

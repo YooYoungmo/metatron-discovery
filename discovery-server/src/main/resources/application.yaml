@@ -52,7 +52,7 @@ polaris:
      en: file://${METATRON_HOME:/metatron}/doc/metatronDiscovery.user.manual.en.pdf
   widget:
     mapView:
-      defaultBaseMap: Light
+      defaultBaseMap: TangoGis
       overrideBaseMap: false
   oauth2:
     permitAll:

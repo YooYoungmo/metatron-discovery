@@ -15,8 +15,6 @@
 import {Component, ElementRef, Injector, Input, OnDestroy, OnInit,} from '@angular/core';
 import {AbstractComponent} from '../../../../common/component/abstract.component';
 import {EventBroadcaster} from "../../../../common/event/event.broadcaster";
-import {Page} from "../../../../domain/common/page";
-import {Alert} from "../../../../common/util/alert.util";
 import {HivePersonalDatabaseService} from "../../service/plugins.hive-personal-database.service";
 
 /**

@@ -11,8 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, ElementRef, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {DataconnectionService} from "../../../../dataconnection/service/dataconnection.service";
+import {Component, ElementRef, Injector, OnDestroy, OnInit} from '@angular/core';
 import {StringUtil} from "../../../../common/util/string.util";
 import {AbstractPopupComponent} from "../../../../common/component/abstract-popup.component";
 import {Alert} from "../../../../common/util/alert.util";
@@ -94,7 +93,7 @@ export class RenameTableComponent extends AbstractPopupComponent implements OnIn
     if (this.validation()) {
       this.loadingShow();
       this.hivePersonalDatabaseService.renameTable(this.workbenchId, this.database, this.renameTable, this.tableName, this.webSocketId)
-        .then((response) => {
+        .then(() => {
           this.loadingHide();
           Alert.success(this.translateService.instant('msg.comm.alert.modify.success'));
           this.broadCaster.broadcast('WORKBENCH_REFRESH_DATABASE_TABLE');

@@ -19,7 +19,7 @@ import {CommonUtil} from '../../../../common/util/common.util';
 import {DataEncryptionDecryptionService} from '../service/data-encryption-decrytion.service';
 import {Alert} from '../../../../common/util/alert.util';
 import {StringUtil} from '../../../../common/util/string.util';
-import {DataEncryptionDecryptionContext, DataSet} from '../data-encryption-decryption.component';
+import {DataEncryptionDecryptionContext} from '../data-encryption-decryption.component';
 import {Subscription, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
 
@@ -127,7 +127,7 @@ export class IdentityVerificationComponent extends AbstractPopupComponent implem
     };
 
     this.loadingShow();
-    this.dataEncryptionDecryptionService.addPurposeOfUseForIdentityVerification(request).then((result) => {
+    this.dataEncryptionDecryptionService.addPurposeOfUseForIdentityVerification(request).then(() => {
       this.loadingHide();
       // 다음 페이지로 이동
       this.context.identityVerificationId = this.identityVerificationId;

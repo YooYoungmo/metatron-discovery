@@ -31,9 +31,6 @@ import {MetadataService} from '../meta-data-management/metadata/service/metadata
 import {CanDeactivateGuard} from '@common/gaurd/can.deactivate.guard';
 import {SaveAsHiveTableComponent} from './component/save-as-hive-table/save-as-hive-table.component';
 import {DataSourceCreateModule} from '../data-storage/data-source-list/create-data-source/data-source-create.module';
-import {FileModule} from "../common/file.module";
-import {ImportFileComponent} from "./component/import-file/import-file.component";
-import {DataSourceCreateModule} from "../data-storage/data-source-list/create-data-source/data-source-create.module";
 import {PluginHivePersonalDatabaseModule} from "../plugins/hive-personal-database/plugin.hive-personal-database.module";
 import {DataEncryptionDecryptionComponent} from './component/data-encryption-decryption/data-encryption-decryption.component';
 import {IdentityVerificationComponent} from './component/data-encryption-decryption/identity-verification/identity-verification.component';

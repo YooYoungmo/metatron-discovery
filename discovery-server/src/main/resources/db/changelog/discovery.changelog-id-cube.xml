@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog dbchangelog-3.8.xsd">
+    <changeSet author="ymyoo (generated)" id="idcube-21062201">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="plugin_hive_personal_database_data_aggregate_tasks" />
+            </not>
+        </preConditions>
+        <createTable tableName="plugin_hive_personal_database_data_aggregate_tasks">
+            <column autoIncrement="true" name="id" type="${bigint.type}">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="thread_name" type="VARCHAR(255)"/>
+            <column name="workbench_id" type="VARCHAR(255)"/>
+            <column name="task_information" type="${text.type}"/>
+            <column name="data_connection_information" type="${text.type}"/>
+            <column name="createdAt" type="datetime"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="ymyoo (generated)" id="idcube-21062202">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="plugin_hive_personal_database_data_aggregate_task_histories" />
+            </not>
+        </preConditions>
+        <createTable tableName="plugin_hive_personal_database_data_aggregate_task_histories">
+            <column autoIncrement="true" name="id" type="${bigint.type}">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="task_id" type="${bigint.type}"/>
+            <column name="startTime" type="datetime"/>
+            <column name="endTime" type="datetime"/>
+            <column name="expiredTime" type="datetime"/>
+            <column name="query" type="${text.type}"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="error_message" type="${text.type}"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="ymyoo (generated)" id="idcube-21062203">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="imsi_data_download_histories" />
+            </not>
+        </preConditions>
+        <createTable tableName="imsi_data_download_histories">
+            <column autoIncrement="true" name="id" type="${bigint.type}">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="workbench_id" type="VARCHAR(255)"/>
+            <column name="query" type="${clob.type}"/>
+            <column name="crypto_column_name" type="VARCHAR(255)"/>
+            <column name="crypto_type" type="VARCHAR(255)"/>
+            <column name="downloaded" type="${boolean.type}"/>
+            <column name="downloaded_backup_hdfs_file_path" type="VARCHAR(5000)"/>
+            <column name="downloaded_by" type="VARCHAR(255)"/>
+            <column name="downloaded_at" type="datetime"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="ymyoo (generated)" id="idcube-21062204">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="imsi_identity_verification" />
+            </not>
+        </preConditions>
+        <createTable tableName="imsi_identity_verification">
+            <column autoIncrement="true" name="id" type="${bigint.type}">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="auth_number" type="VARCHAR(255)"/>
+            <column name="user_id" type="VARCHAR(255)"/>
+            <column name="receiver_tel_no" type="VARCHAR(255)"/>
+            <column name="receiver_name" type="VARCHAR(255)"/>
+            <column name="verified" type="${boolean.type}"/>
+            <column name="purpose_of_use" type="VARCHAR(255)"/>
+            <column name="created_at" type="datetime"/>
+            <column name="updated_at" type="datetime"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="ymyoo (generated)" id="idcube-21062205">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="book_data_download_histories" />
+            </not>
+        </preConditions>
+        <createTable tableName="book_data_download_histories">
+            <column autoIncrement="true" name="id" type="${bigint.type}">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="book_type" type="VARCHAR(255)"/>
+            <column name="book_id" type="VARCHAR(255)"/>
+            <column name="query" type="${clob.type}"/>
+            <column name="downloaded_by" type="VARCHAR(255)"/>
+            <column name="downloaded_at" type="datetime"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

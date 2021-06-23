@@ -16,20 +16,20 @@ import {ChangeDetectorRef, Component, ElementRef, Injector, OnDestroy, OnInit, V
 import * as pixelWidth from 'string-pixel-width';
 import {AbstractPopupComponent} from "../../../../common/component/abstract-popup.component";
 import {GridComponent} from "../../../../common/component/grid/grid.component";
-import {FileLikeObject, FileUploader} from "ng2-file-upload";
+import {FileUploader} from "ng2-file-upload";
 import {CommonConstant} from "../../../../common/constant/common.constant";
 import {CookieConstant} from "../../../../common/constant/cookie.constant";
 import {Alert} from "../../../../common/util/alert.util";
 import {isUndefined} from "util";
 import {GridOption} from "../../../../common/component/grid/grid.option";
-import {header, SlickGridHeader} from "../../../../common/component/grid/grid.header";
+import {Header, SlickGridHeader} from "../../../../common/component/grid/grid.header";
 import {CommonUtil} from "../../../../common/util/common.util";
 import {StringUtil} from "../../../../common/util/string.util";
 import {SYSTEM_PERMISSION} from "../../../../common/permission/permission";
-import {DataconnectionService} from "../../../../dataconnection/service/dataconnection.service";
 import {Dataconnection} from "../../../../domain/dataconnection/dataconnection";
 import {EventBroadcaster} from "../../../../common/event/event.broadcaster";
 import {HivePersonalDatabaseService} from "../../service/plugins.hive-personal-database.service";
+import {DataconnectionService} from '@common/service/dataconnection.service';
 
 const PERSONAL_DATABASE_NAME = "개인데이터베이스";
 
@@ -139,7 +139,7 @@ export class ImportFileComponent extends AbstractPopupComponent implements OnIni
     });
 
     // 지원하지 않는 파일 형식일 경우
-    this.uploader.onWhenAddingFileFailed = (item: FileLikeObject, filter: any, options: any) => {
+    this.uploader.onWhenAddingFileFailed = () => {
       Alert.error(this.translateService.instant('msg.storage.alert.file.import.error'));
     };
 
@@ -158,6 +158,7 @@ export class ImportFileComponent extends AbstractPopupComponent implements OnIni
 
     // 에러 처리
     this.uploader.onErrorItem = (item, response, status, headers) => {
+      console.log(item, status, headers);
       // response 데이터
       const result: any = JSON.parse(response);
       // 데이터 초기화
@@ -168,7 +169,7 @@ export class ImportFileComponent extends AbstractPopupComponent implements OnIni
       this.loadingHide();
     };
 
-    this.uploader.onAfterAddingFile = (item) => {
+    this.uploader.onAfterAddingFile = () => {
       this.loadingShow();
       this.uploader.uploadAll();
     };
@@ -248,7 +249,7 @@ export class ImportFileComponent extends AbstractPopupComponent implements OnIni
 
       this.loadingShow();
       this.hivePersonalDatabaseService.createTableFromFile(this.workbenchId, databaseName, params)
-        .then((response) => {
+        .then(() => {
           this.loadingHide();
           this.broadCaster.broadcast('WORKBENCH_REFRESH_DATABASE_TABLE');
           Alert.success(this.translateService.instant('msg.comm.alert.save.success'));
@@ -556,7 +557,7 @@ export class ImportFileComponent extends AbstractPopupComponent implements OnIni
    */
   private updateGrid(data: any, fields: string[]) {
     // headers
-    const headers: header[] = this.getHeaders(fields);
+    const headers: Header[] = this.getHeaders(fields);
     // rows
     const rows: any[] = this.getRows(data);
     // grid 그리기
@@ -671,7 +672,7 @@ export class ImportFileComponent extends AbstractPopupComponent implements OnIni
 
         this.tablePartitionColumns = this.tablePartitionColumns.concat(this.importFile.fields);
       })
-      .catch((error) => {
+      .catch(() => {
         // 로딩 hide
         this.loadingHide();
       });

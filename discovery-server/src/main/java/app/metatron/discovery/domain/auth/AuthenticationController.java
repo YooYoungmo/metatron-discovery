@@ -28,6 +28,8 @@ import app.metatron.discovery.domain.idcube.IdCubeProperties;
 import app.metatron.discovery.domain.user.CachedUserService;
 import app.metatron.discovery.domain.user.User;
 import app.metatron.discovery.domain.user.UserRepository;
+import app.metatron.discovery.domain.user.group.Group;
+import app.metatron.discovery.domain.user.group.GroupMember;
 import app.metatron.discovery.domain.user.group.GroupService;
 import app.metatron.discovery.domain.user.role.Permission;
 import app.metatron.discovery.domain.user.role.RoleService;
@@ -57,8 +59,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.codec.Base64;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
@@ -109,6 +113,9 @@ public class AuthenticationController {
 
   @Autowired
   UserRepository userRepository;
+
+  @Autowired
+  DefaultTokenServices defaultTokenServices;
 
   @Autowired
   RoleService roleService;

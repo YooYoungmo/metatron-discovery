@@ -25,9 +25,9 @@ import {
   ViewChild
 } from '@angular/core';
 import {DataEncryptionDecryptionService} from '../service/data-encryption-decrytion.service';
-import {DataEncryptionDecryptionContext, DataSet} from '../data-encryption-decryption.component';
+import {DataEncryptionDecryptionContext} from '../data-encryption-decryption.component';
 import {GridComponent} from '../../../../common/component/grid/grid.component';
-import {header, SlickGridHeader} from '../../../../common/component/grid/grid.header';
+import {Header, SlickGridHeader} from '../../../../common/component/grid/grid.header';
 import {GridOption} from '../../../../common/component/grid/grid.option';
 import * as pixelWidth from 'string-pixel-width';
 import {Alert} from '../../../../common/util/alert.util';
@@ -81,9 +81,9 @@ export class EncryptionDecryptionCompletionComponent extends AbstractPopupCompon
 
     // Init
     super.ngOnInit();
+
     // ui 초기화
     this.initView();
-
   }
 
   // Destory
@@ -143,7 +143,7 @@ export class EncryptionDecryptionCompletionComponent extends AbstractPopupCompon
         };
       }
     }));
-    const headers: header[] = this.getHeaders(fields);
+    const headers: Header[] = this.getHeaders(fields);
     // rows
     const rows: any[] = this.getRows(this.context.transformDataSet.data);
     // grid 그리기
@@ -185,6 +185,7 @@ export class EncryptionDecryptionCompletionComponent extends AbstractPopupCompon
   }
 
   private drawGrid(headers: any[], rows: any[]) {
+    this.changeDetect.detectChanges();
     // 그리드 옵션은 선택
     this.gridComponent.create(headers, rows, new GridOption()
       .SyncColumnCellResize(true)
@@ -192,6 +193,5 @@ export class EncryptionDecryptionCompletionComponent extends AbstractPopupCompon
       .RowHeight(32)
       .build()
     );
-    this.changeDetect.detectChanges();
   }
 }

@@ -111,7 +111,7 @@ export class AppComponent implements AfterContentChecked, OnInit {
           }
         });
       }
-    }).catch(error => {});
+    }).catch(() => {});
   }
 
   // Shows and hides the loading spinner during RouterEvent changes

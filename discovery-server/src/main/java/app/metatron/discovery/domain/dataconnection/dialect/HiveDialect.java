@@ -15,13 +15,15 @@
 package app.metatron.discovery.domain.dataconnection.dialect;
 
 import app.metatron.discovery.common.ConnectionConfigProperties;
-import app.metatron.discovery.common.MetatronProperties;
-import app.metatron.discovery.domain.workbench.hive.HivePersonalDatasource;
-import app.metatron.discovery.util.ApplicationContextProvider;
+import app.metatron.discovery.common.exception.FunctionWithException;
 import app.metatron.discovery.domain.workbench.hive.HiveNamingRule;
+import app.metatron.discovery.domain.workbench.hive.HivePersonalDatasource;
+import app.metatron.discovery.extension.dataconnection.jdbc.JdbcConnectInformation;
+import app.metatron.discovery.extension.dataconnection.jdbc.dialect.JdbcDialect;
+import app.metatron.discovery.util.ApplicationContextProvider;
+import app.metatron.discovery.util.AuthUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -29,15 +31,12 @@ import org.springframework.stereotype.Component;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import app.metatron.discovery.common.exception.FunctionWithException;
-import app.metatron.discovery.extension.dataconnection.jdbc.JdbcConnectInformation;
-import app.metatron.discovery.extension.dataconnection.jdbc.dialect.JdbcDialect;
 
 /**
  *
@@ -53,12 +52,6 @@ public class HiveDialect implements JdbcDialect {
   private static final String KERBEROS_PRINCIPAL_PATTERN = "principal=(.+)@(.[^;,\\n\\r\\t]+)";
 
   public static final String PROPERTY_KEY_PROPERTY_GROUP_NAME = METATRON_PROPERTY_PREFIX + "property.group.name";
-
-  public static final String PROPERTY_KEY_ADMIN_NAME = METATRON_PROPERTY_PREFIX + "hive.admin.name";
-  public static final String PROPERTY_KEY_ADMIN_PASSWORD = METATRON_PROPERTY_PREFIX + "hive.admin.password";
-  public static final String PROPERTY_KEY_PERSONAL_DATABASE_PREFIX = METATRON_PROPERTY_PREFIX + "personal.database.prefix";
-  public static final String PROPERTY_KEY_HDFS_CONF_PATH = METATRON_PROPERTY_PREFIX + "hdfs.conf.path";
-
   public static final String PROPERTY_KEY_METASTORE_HOST = METATRON_PROPERTY_PREFIX + "metastore.host";
   public static final String PROPERTY_KEY_METASTORE_PORT = METATRON_PROPERTY_PREFIX + "metastore.port";
   public static final String PROPERTY_KEY_METASTORE_SCHEMA = METATRON_PROPERTY_PREFIX + "metastore.schema";

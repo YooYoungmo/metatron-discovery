@@ -15,9 +15,8 @@
 import {Component, ElementRef, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {AbstractPopupComponent} from "../../../../../common/component/abstract-popup.component";
 import {GridComponent} from "../../../../../common/component/grid/grid.component";
-import {DataconnectionService} from "../../../../../dataconnection/service/dataconnection.service";
 import {Alert} from "../../../../../common/util/alert.util";
-import {header, SlickGridHeader} from "../../../../../common/component/grid/grid.header";
+import {Header, SlickGridHeader} from "../../../../../common/component/grid/grid.header";
 import {isUndefined} from "util";
 import {GridOption} from "../../../../../common/component/grid/grid.option";
 import {Page} from "../../../../../domain/common/page";
@@ -28,6 +27,7 @@ import {SelectComponent} from "../../../../../common/component/select/select.com
 import {CommonUtil} from "../../../../../common/util/common.util";
 import {SYSTEM_PERMISSION} from "../../../../../common/permission/permission";
 import {Dataconnection} from "../../../../../domain/dataconnection/dataconnection";
+import {DataconnectionService} from '@common/service/dataconnection.service';
 
 const QUERY_EDITOR_COMMENT: string =
   "-- 반복해서 실행할 SELECT 쿼리를 입력해 주세요.\n" +
@@ -61,9 +61,9 @@ export class CreationDataAggregateTaskComponent extends AbstractPopupComponent i
   @ViewChild('targetTableSelect')
   private targetTableSelect: SelectComponent;
 
-  private dataAggregate: DataAggregate;
+  public dataAggregate: DataAggregate;
   private initTableList: boolean = false;
-  private queryErrorMessage = "";
+  public queryErrorMessage = "";
 
   /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    | Protected Variables
@@ -229,7 +229,7 @@ export class CreationDataAggregateTaskComponent extends AbstractPopupComponent i
     // data
     const data: any = this.schemaTableColumnList;
     // headers
-    const headers: header[] = [];
+    const headers: Header[] = [];
     // Physical name
     headers.push(this._createSlickGridHeader('physicalName', 'Column Name', 300));
     // Type
@@ -257,7 +257,7 @@ export class CreationDataAggregateTaskComponent extends AbstractPopupComponent i
     this._createGridComponent(this.gridSchemaColumnComponent, headers, rows, 32);
   }
 
-  private _createSlickGridHeader(field: string, name: string, width: number, iconType?: string): header {
+  private _createSlickGridHeader(field: string, name: string, width: number, iconType?: string): Header {
     return iconType
       ? new SlickGridHeader()
         .Id(field)
@@ -285,7 +285,7 @@ export class CreationDataAggregateTaskComponent extends AbstractPopupComponent i
         .build();
   }
 
-  private _createGridComponent(gridComponent: GridComponent, headers: header[], rows: any[], rowHeight: number): void {
+  private _createGridComponent(gridComponent: GridComponent, headers: Header[], rows: any[], rowHeight: number): void {
     gridComponent.create(headers, rows, new GridOption()
       .SyncColumnCellResize(true)
       .MultiColumnSort(true)

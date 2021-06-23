@@ -25,13 +25,13 @@ import {
   ViewChild
 } from '@angular/core';
 import {DataEncryptionDecryptionService} from '../service/data-encryption-decrytion.service';
-import {GridComponent} from '../../../../common/component/grid/grid.component';
-import {header, SlickGridHeader} from '../../../../common/component/grid/grid.header';
 import {DataEncryptionDecryptionContext, DataSet} from '../data-encryption-decryption.component';
 import * as pixelWidth from 'string-pixel-width';
-import {GridOption} from '../../../../common/component/grid/grid.option';
 import {StringUtil} from '../../../../common/util/string.util';
 import {Alert} from '../../../../common/util/alert.util';
+import {GridComponent} from '@common/component/grid/grid.component';
+import {Header, SlickGridHeader} from '@common/component/grid/grid.header';
+import {GridOption} from '@common/component/grid/grid.option';
 
 @Component({
              selector: 'app-data-selection',
@@ -50,7 +50,7 @@ export class DataSelectionComponent extends AbstractPopupComponent implements On
   | Public Variables
   |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
   @ViewChild(GridComponent)
-  private gridComponent: GridComponent;
+  public gridComponent: GridComponent;
 
   public clearGrid = true;
 
@@ -98,7 +98,6 @@ export class DataSelectionComponent extends AbstractPopupComponent implements On
     super.ngOnInit();
     // ui 초기화
     this.initView();
-
   }
 
   // Destory
@@ -179,9 +178,11 @@ export class DataSelectionComponent extends AbstractPopupComponent implements On
         };
       }
     }));
-    const headers: header[] = this.getHeaders(fields);
+    const headers: Header[] = this.getHeaders(fields);
     // rows
     const rows: any[] = this.getRows(this.context.originalDataSet.data);
+
+    console.log('this.gridComponent', this.gridComponent);
     // grid 그리기
     this.drawGrid(headers, rows);
     this.columns = fields;
@@ -222,6 +223,7 @@ export class DataSelectionComponent extends AbstractPopupComponent implements On
   }
 
   private drawGrid(headers: any[], rows: any[]) {
+    this.changeDetect.detectChanges();
     // 그리드 옵션은 선택
     this.gridComponent.create(headers, rows, new GridOption()
       .SyncColumnCellResize(true)
@@ -229,6 +231,5 @@ export class DataSelectionComponent extends AbstractPopupComponent implements On
       .RowHeight(32)
       .build()
     );
-    this.changeDetect.detectChanges();
   }
 }

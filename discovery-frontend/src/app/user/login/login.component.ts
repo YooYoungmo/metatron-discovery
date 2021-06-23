@@ -125,7 +125,7 @@ export class LoginComponent extends AbstractComponent implements OnInit, OnDestr
           if(res['url']) {
             this.userService.moveToRedirectPage(redirectUrl, res['url']);
           }
-        }).catch(error => {});
+        }).catch(() => {});
       }
     }
 

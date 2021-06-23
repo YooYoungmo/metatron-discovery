@@ -16,12 +16,12 @@ import {Component, ElementRef, Injector, OnDestroy, OnInit} from '@angular/core'
 import {AbstractPopupComponent} from "../../../../common/component/abstract-popup.component";
 import {CommonUtil} from "../../../../common/util/common.util";
 import {SYSTEM_PERMISSION} from "../../../../common/permission/permission";
-import {DataconnectionService} from "../../../../dataconnection/service/dataconnection.service";
 import {Dataconnection} from "../../../../domain/dataconnection/dataconnection";
 import {StringUtil} from "../../../../common/util/string.util";
 import {HivePersonalDatabaseService} from "../../service/plugins.hive-personal-database.service";
 import {Alert} from "../../../../common/util/alert.util";
 import {EventBroadcaster} from "../../../../common/event/event.broadcaster";
+import {DataconnectionService} from '@common/service/dataconnection.service';
 
 const PERSONAL_DATABASE_NAME = "개인데이터베이스";
 
@@ -214,7 +214,7 @@ export class CreationTableComponent extends AbstractPopupComponent implements On
         columns: columns
       };
 
-      this.hivePersonalDatabaseService.createTable(this.workbenchId, database, createTableRequest).then((res) => {
+      this.hivePersonalDatabaseService.createTable(this.workbenchId, database, createTableRequest).then(() => {
         this.loadingHide();
         Alert.success(this.translateService.instant('msg.comm.alert.save.success'));
         this.broadCaster.broadcast('WORKBENCH_REFRESH_DATABASE_TABLE');

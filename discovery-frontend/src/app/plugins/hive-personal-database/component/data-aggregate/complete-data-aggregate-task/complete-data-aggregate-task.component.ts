@@ -35,8 +35,8 @@ export class CompleteDataAggregateTaskComponent extends AbstractPopupComponent i
    |-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
   private workbenchId: string;
-  private dataAggregate: DataAggregate;
-  private hours: string[] = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'];
+  public dataAggregate: DataAggregate;
+  public hours: string[] = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'];
 
   @ViewChild('startPickerInput')
   private readonly _startPickerInput: ElementRef;
@@ -51,8 +51,8 @@ export class CompleteDataAggregateTaskComponent extends AbstractPopupComponent i
   private _startPicker;
   private _endPicker;
 
-  @ViewChild('startHourSelect')
-  private startHourSelect: SelectComponent;
+  // @ViewChild('startHourSelect')
+  // private startHourSelect: SelectComponent;
 
   @ViewChild('endHourSelect')
   private endHourSelect: SelectComponent;
@@ -179,7 +179,7 @@ export class CompleteDataAggregateTaskComponent extends AbstractPopupComponent i
       }
 
       this.loadingShow();
-      this.hivePersonalDatabaseService.createDataAggregateTask(this.workbenchId, this.dataAggregate).then((res) => {
+      this.hivePersonalDatabaseService.createDataAggregateTask(this.workbenchId, this.dataAggregate).then(() => {
         this.loadingHide();
         Alert.success(this.translateService.instant('msg.comm.alert.save.success'));
         this.broadCaster.broadcast('COMPLETE_HIVE_PERSONAL_DATABASE_CREATE_DATA_AGGREGATE_TASK');
@@ -217,14 +217,14 @@ export class CompleteDataAggregateTaskComponent extends AbstractPopupComponent i
     const startPickerSettings: PickerSettings
       = new DatePickerSettings(
       'ddp-input-calen',
-      (fdate: string, date: Date) => {
+      (date: Date) => {
         // set picker start date
         this._startPickerDate = date;
         // picker date validation
         this._pickerDateValidation(true);
       },
       // if hide picker
-      (inst, completed: boolean) => {
+      (completed: boolean) => {
         if (completed === false) {
           // this._changeSelectItemEvent.emit(this._getSelectedTimeData());
         }
@@ -237,13 +237,13 @@ export class CompleteDataAggregateTaskComponent extends AbstractPopupComponent i
     const endPickerSettings: PickerSettings
       = new DatePickerSettings(
       'ddp-input-calen',
-      (fdate: string, date: Date) => {
+      (date: Date) => {
         // set picker end date
         this._endPickerDate = date;
         // picker date validation
         this._pickerDateValidation(false);
       },
-      (inst, completed: boolean) => {
+      (completed: boolean) => {
         // if hide picker
         if (completed === false) {
           // this._changeSelectItemEvent.emit(this._getSelectedTimeData());
@@ -273,6 +273,7 @@ export class CompleteDataAggregateTaskComponent extends AbstractPopupComponent i
 
 class DatePickerSettings extends PickerSettings {
   constructor(clz: string, onSelectDate: Function, onHide: Function) {
+    // @ts-ignore
     super(clz, onSelectDate, onHide);
     this.minView = 'days';
     this.view = 'days';

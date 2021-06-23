@@ -15,12 +15,12 @@
 import {Component, ElementRef, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {AbstractPopupComponent} from '../../../../common/component/abstract-popup.component';
 import {Datasource, Field, FieldRole, LogicalType} from '../../../../domain/datasource/datasource';
-import {FileLikeObject, FileUploader} from 'ng2-file-upload';
+import {FileUploader} from 'ng2-file-upload';
 import {Alert} from '../../../../common/util/alert.util';
 import {CookieConstant} from '../../../../common/constant/cookie.constant';
 import {CommonConstant} from '../../../../common/constant/common.constant';
 import {DatasourceService} from '../../../../datasource/service/datasource.service';
-import {header, SlickGridHeader} from '../../../../common/component/grid/grid.header';
+import {SlickGridHeader, Header} from '../../../../common/component/grid/grid.header';
 import {GridOption} from '../../../../common/component/grid/grid.option';
 import {GridComponent} from '../../../../common/component/grid/grid.component';
 import * as pixelWidth from 'string-pixel-width';
@@ -106,7 +106,7 @@ export class ReUploadFileDataSource extends AbstractPopupComponent implements On
       ],
     });
     // 지원하지 않는 파일 형식일 경우
-    this.uploader.onWhenAddingFileFailed = (item: FileLikeObject, filter: any, options: any) => {
+    this.uploader.onWhenAddingFileFailed = () => {
       Alert.error(this.translateService.instant('msg.storage.alert.file.import.error'));
     };
 
@@ -127,8 +127,9 @@ export class ReUploadFileDataSource extends AbstractPopupComponent implements On
       }
     };
 
-    // 에러 처리
+    // 에러 처리'
     this.uploader.onErrorItem = (item, response, status, headers) => {
+      console.log(item, status, headers);
       // response 데이터
       const result: any = JSON.parse(response);
       // 데이터 초기화
@@ -141,7 +142,7 @@ export class ReUploadFileDataSource extends AbstractPopupComponent implements On
       this.loadingHide();
     };
 
-    this.uploader.onAfterAddingFile = (item) => {
+    this.uploader.onAfterAddingFile = () => {
       this.loadingShow();
       this.uploader.uploadAll();
     };
@@ -327,7 +328,7 @@ export class ReUploadFileDataSource extends AbstractPopupComponent implements On
    */
   private _updateGrid(data: any, fields: Field[]) {
     // headers
-    const headers: header[] = this._getHeaders(fields);
+    const headers: Header[] = this._getHeaders(fields);
     // rows
     const rows: any[] = this._getRows(data);
     // grid 그리기
@@ -340,7 +341,7 @@ export class ReUploadFileDataSource extends AbstractPopupComponent implements On
    * @returns {header[]}
    * @private
    */
-  private _getHeaders(fields: Field[]): header[] {
+  private _getHeaders(fields: Field[]): Header[] {
     return fields.map(
       (field: Field) => {
         /* 70 는 CSS 상의 padding 수치의 합산임 */
@@ -570,7 +571,7 @@ export class ReUploadFileDataSource extends AbstractPopupComponent implements On
     };
 
     this.datasourceService.appendDataToDatasource(this.datasource.id, param)
-      .then((result) => {
+      .then(() => {
         this.router.navigateByUrl('/', {skipLocationChange: true}).then(()=>
           this.router.navigate(['/management/storage/datasource', this.datasource.id]));
       })

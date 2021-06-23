@@ -66,7 +66,7 @@ export class UserService extends AbstractService {
               CommonUtil.moveToStartPage( this.router );
             }
           })
-          .catch(error => {
+          .catch(() => {
             CommonUtil.moveToStartPage( this.router );
           });
       } else {
@@ -125,7 +125,7 @@ export class UserService extends AbstractService {
             } else {
               CommonUtil.moveToStartPage( this.router );
             }
-          }).catch(error => {
+          }).catch(() => {
             this.router.navigate(['/user/login']);
           });
         } else {
@@ -142,7 +142,7 @@ export class UserService extends AbstractService {
           } else {
             CommonUtil.moveToStartPage( this.router );
           }
-        }).catch(error => {
+        }).catch(() => {
           this.router.navigate(['/user/login']);
         });
       } else {
@@ -234,19 +234,5 @@ export class UserService extends AbstractService {
 
   public getClientDetail(clientId: string) {
     return this.getWithoutToken(this.API_URL + `oauth/${clientId}`);
-  }
-
-  public logout() {
-    if( CommonUtil.isSamlSSO() ) {
-      location.href = '/saml/logout';
-    } else {
-      this.cookieService.delete(CookieConstant.KEY.LOGIN_TOKEN, '/');
-      this.cookieService.delete(CookieConstant.KEY.LOGIN_TOKEN_TYPE, '/');
-      this.cookieService.delete(CookieConstant.KEY.LOGIN_USER_ID, '/');
-      this.cookieService.delete(CookieConstant.KEY.REFRESH_LOGIN_TOKEN, '/');
-      this.cookieService.delete(CookieConstant.KEY.CURRENT_WORKSPACE, '/');
-      this.cookieService.delete(CookieConstant.KEY.MY_WORKSPACE, '/');
-      this.cookieService.delete(CookieConstant.KEY.PERMISSION, '/');
-    }
   }
 }

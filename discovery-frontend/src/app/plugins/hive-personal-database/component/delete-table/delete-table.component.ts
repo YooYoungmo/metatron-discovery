@@ -99,7 +99,7 @@ export class DeleteTableComponent extends AbstractComponent implements OnInit, O
     this.isShow = false;
     this.loadingShow();
     this.hivePersonalDatabaseService.deleteTable(this.workbenchId, this.database, this.table, this.webSocketId)
-      .then((response) => {
+      .then(() => {
         this.loadingHide();
         this.broadCaster.broadcast('WORKBENCH_REFRESH_DATABASE_TABLE');
         Alert.success(this.translateService.instant('msg.comm.alert.delete.success'));

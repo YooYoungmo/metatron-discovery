@@ -66,9 +66,9 @@ import {DataAggregate} from "../plugins/hive-personal-database/component/data-ag
 import {DetailsDataAggregateTaskComponent} from "../plugins/hive-personal-database/component/data-aggregate/details-data-aggregate-task/details-data-aggregate-task.component";
 import {DataSet} from './component/data-encryption-decryption/data-encryption-decryption.component';
 import {DataEncryptionDecryptionService} from './component/data-encryption-decryption/service/data-encryption-decrytion.service';
+import {DetailWorkbenchDatabaseComponent} from './component/detail-workbench/detail-workbench-database/detail-workbench-database';
 
 declare let moment: any;
-declare let Split;
 
 @Component({
   selector: 'app-workbench',
@@ -122,8 +122,8 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
   @ViewChild(SaveAsHiveTableComponent)
   private saveAsHiveTableComponent: SaveAsHiveTableComponent;
 
-  @ViewChild(DetailWorkbenchDatabase)
-  private detailWorkbenchDatabase: DetailWorkbenchDatabase;
+  @ViewChild(DetailWorkbenchDatabaseComponent)
+  private detailWorkbenchDatabase: DetailWorkbenchDatabaseComponent;
 
   @ViewChild(CreationTableComponent)
   private creationTableComponent: CreationTableComponent;
@@ -1510,7 +1510,6 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
     }
   }
 
-  private _loadInitData(connectWebSocket: () => void) {
   public showDataEncryptionDecryption(): void {
     const dataGrid = this._getCurrentResultTab();
 
@@ -1525,7 +1524,7 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
         this.dataEncryptionDecryptionQueryEditorId = dataGrid.editorId;
         this.dataEncryptionDecryptionStep = "identity-verification";
       }
-    }).catch((error) => {
+    }).catch(() => {
       this.loadingHide();
       Alert.error("조회 중 오류가 발생 했습니다. 잠시 후 다시 시도하세요.");
     });
@@ -1535,7 +1534,7 @@ export class WorkbenchComponent extends AbstractComponent implements OnInit, OnD
     this.dataEncryptionDecryptionStep = "";
   }
 
-  private _loadInitData(connectWebSocket: Function) {
+  private _loadInitData(connectWebSocket: () => void) {
     this.workbenchService.getWorkbench(this.workbenchId).then((data) => {
       if (data.valid) {
         WorkbenchService.workbench = data;

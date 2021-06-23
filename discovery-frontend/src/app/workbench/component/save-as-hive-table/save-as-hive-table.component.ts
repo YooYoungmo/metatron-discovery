@@ -17,8 +17,6 @@ import {WorkbenchService} from '../../service/workbench.service';
 import {StringUtil} from '@common/util/string.util';
 import {CommonUtil} from 'app/common/util/common.util';
 import {Alert} from '@common/util/alert.util';
-import {getPersonalDatabaseName, ImportType} from "../import-file/import-file.component";
-import {Dataconnection} from "../../../domain/dataconnection/dataconnection";
 
 @Component({
   selector: 'app-save-as-hive-table',
@@ -36,7 +34,6 @@ export class SaveAsHiveTableComponent extends AbstractComponent implements OnIni
   private csvFilePath: string = '';
   private webSocketId: string = '';
   private workbenchId: string = '';
-  private dataConnection: Dataconnection;
 
   @Output()
   saveSucceed = new EventEmitter<string>();
